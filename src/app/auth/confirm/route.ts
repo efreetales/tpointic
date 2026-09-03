@@ -32,6 +32,18 @@ export async function GET(request: NextRequest) {
     if (!error) {
       return response;
     }
+
+    console.error("verifyOtp failed:", {
+      message: error.message,
+      status: error.status,
+      code: error.code,
+      type,
+    });
+  } else {
+    console.error("auth/confirm missing params:", {
+      hasTokenHash: Boolean(token_hash),
+      type,
+    });
   }
 
   return NextResponse.redirect(
