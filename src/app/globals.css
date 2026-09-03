@@ -7,6 +7,7 @@
   --color-slate: #4f5d75;
   --color-gray: #666666;
   --color-bg: #fafafa;
+  --color-surface: #ffffff;
   --color-border: #eaeaec;
 }
 
@@ -17,6 +18,7 @@
   --color-slate: var(--color-slate);
   --color-gray: var(--color-gray);
   --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
   --color-border: var(--color-border);
   --font-sans: var(--font-nunito);
 }
@@ -24,4 +26,40 @@
 body {
   background: var(--color-bg);
   color: var(--color-navy);
+}
+
+/* Public site: dark theme inspired by talespereira.com (black bg, cyan/teal accents) */
+.site-theme {
+  --color-coral: #66fcf1;
+  --color-peach: #26a193;
+  --color-navy: #ededed;
+  --color-slate: #a3a3a3;
+  --color-gray: #8a8a8a;
+  --color-bg: #0a0a0a;
+  --color-surface: #141414;
+  --color-border: #262626;
+  color-scheme: dark;
+}
+
+.hero-gradient {
+  background: linear-gradient(120deg, #4c2f8c 0%, #2f5fce 45%, #1bb7a6 80%, #66fcf1 100%);
+}
+
+.glow-text {
+  text-shadow: 0 0 24px rgba(102, 252, 241, 0.35);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s ease-out both;
 }

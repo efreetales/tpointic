@@ -14,7 +14,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
 
   if (state.status === "ok") {
     return (
-      <div className="rounded-2xl border border-border bg-white p-6 text-navy">
+      <div className="rounded-2xl border border-border bg-surface p-6 text-navy">
         <p className="font-bold">✅ {state.message}</p>
       </div>
     );
@@ -31,7 +31,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
           name="nome"
           type="text"
           required
-          className="mt-1 w-full rounded-lg border border-border bg-white px-4 py-2 text-navy outline-none focus:border-coral"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-4 py-2 text-navy outline-none focus:border-coral"
         />
       </div>
       <div>
@@ -43,7 +43,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
           name="email"
           type="email"
           required
-          className="mt-1 w-full rounded-lg border border-border bg-white px-4 py-2 text-navy outline-none focus:border-coral"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-4 py-2 text-navy outline-none focus:border-coral"
         />
       </div>
       <div>
@@ -57,7 +57,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
           id="telefone"
           name="telefone"
           type="tel"
-          className="mt-1 w-full rounded-lg border border-border bg-white px-4 py-2 text-navy outline-none focus:border-coral"
+          className="mt-1 w-full rounded-lg border border-border bg-surface px-4 py-2 text-navy outline-none focus:border-coral"
         />
       </div>
 
@@ -70,7 +70,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-coral px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-peach disabled:opacity-60"
+        className="w-full rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100"
       >
         {pending ? "Enviando..." : "Confirmar matrícula"}
       </button>
