@@ -4,6 +4,40 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
+export async function sendNotificacaoTurma({
+  destinatarios,
+  assunto,
+  corpo,
+}: {
+  destinatarios: string[];
+  assunto: string;
+  corpo: string;
+}) {
+  if (!resend) {
+    console.warn(
+      "RESEND_API_KEY não configurada — pulando envio de notificação.",
+    );
+    return { skipped: true, enviados: 0 };
+  }
+
+  const from = process.env.RESEND_FROM_EMAIL ?? "TPointic <onboarding@resend.dev>";
+  const html = `
+    <div style="font-family: sans-serif; color: #2D3142; max-width: 480px; margin: 0 auto; white-space: pre-line;">
+      <p style="color: #EF8354; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px;">TPointic</p>
+      ${corpo}
+      <p style="margin-top: 24px;">Tales Pereira</p>
+    </div>
+  `;
+
+  await Promise.all(
+    destinatarios.map((to) =>
+      resend.emails.send({ from, to, subject: assunto, html }),
+    ),
+  );
+
+  return { skipped: false, enviados: destinatarios.length };
+}
+
 export async function sendConfirmacaoMatricula({
   to,
   nome,
