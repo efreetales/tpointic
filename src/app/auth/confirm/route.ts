@@ -4,11 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const next = searchParams.get("next") ?? "/admin";
 
-  if (token_hash && type) {
+  if (code || (token_hash && type)) {
     const response = NextResponse.redirect(new URL(next, origin));
 
     const supabase = createServerClient(
@@ -28,19 +29,23 @@ export async function GET(request: NextRequest) {
       },
     );
 
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash });
+    const { error } = code
+      ? await supabase.auth.exchangeCodeForSession(code)
+      : await supabase.auth.verifyOtp({ type: type!, token_hash: token_hash! });
+
     if (!error) {
       return response;
     }
 
-    console.error("verifyOtp failed:", {
+    console.error("auth/confirm verification failed:", {
       message: error.message,
       status: error.status,
       code: error.code,
-      type,
+      usedFlow: code ? "pkce" : "otp",
     });
   } else {
     console.error("auth/confirm missing params:", {
+      hasCode: Boolean(code),
       hasTokenHash: Boolean(token_hash),
       type,
     });
