@@ -107,31 +107,31 @@ export default async function Home() {
               Design estratégico turbinado por IA.
             </h1>
             <p
-              className="animate-fade-up mt-6 max-w-xl text-lg text-slate"
+              className="animate-fade-up mt-6 max-w-xl text-lg text-white"
               style={{ animationDelay: "0.2s" }}
             >
-              15+ anos unindo liderança, design e tecnologia para transformar
-              problemas complexos em resultados.
+              Há mais de 15 anos unindo liderança, design e tecnologia para
+              transformar problemas complexos em resultados.
             </p>
             <div
               className="animate-fade-up mt-10 flex flex-wrap gap-4"
               style={{ animationDelay: "0.3s" }}
             >
               <Link
-                href="/treinamentos/design-thinking-5-fundamentos"
+                href="/cases"
                 className="group flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
               >
-                Conheça a masterclass
+                Ver portfólio
                 <ArrowUpRight
                   size={18}
                   className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
               </Link>
               <Link
-                href="/cases"
+                href="/treinamentos/design-thinking-5-fundamentos"
                 className="rounded-full border border-white/40 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10"
               >
-                Ver portfólio
+                Conheça a masterclass de Design Thinking
               </Link>
             </div>
           </div>
@@ -148,10 +148,10 @@ export default async function Home() {
       {/* Serviços */}
       <section className="mx-auto max-w-5xl px-6 py-20">
         <Reveal>
-          <p className="text-sm font-bold uppercase tracking-widest text-coral">
+          <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
             Frentes de atuação
           </p>
-          <h2 className="mt-2 text-3xl font-black text-navy">
+          <h2 className="mt-2 text-center text-3xl font-black text-navy">
             Como eu posso ajudar
           </h2>
         </Reveal>
@@ -172,12 +172,14 @@ export default async function Home() {
         </div>
 
         <Reveal delay={0.2}>
-          <Link
-            href="/servicos"
-            className="mt-8 inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
-          >
-            Ver todos os serviços <ArrowUpRight size={16} />
-          </Link>
+          <div className="mt-8 flex justify-center">
+            <Link
+              href="/servicos"
+              className="inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
+            >
+              Ver todos os serviços <ArrowUpRight size={16} />
+            </Link>
+          </div>
         </Reveal>
       </section>
 
@@ -186,10 +188,10 @@ export default async function Home() {
         <section className="relative border-t border-border">
           <div className="mx-auto max-w-5xl px-6 pt-20">
             <Reveal>
-              <p className="text-sm font-bold uppercase tracking-widest text-coral">
+              <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
                 Portfólio
               </p>
-              <h2 className="mt-2 text-3xl font-black text-navy">
+              <h2 className="mt-2 text-center text-3xl font-black text-navy">
                 Cases recentes
               </h2>
             </Reveal>
@@ -288,10 +290,10 @@ export default async function Home() {
       <section className="border-t border-border px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <Reveal>
-            <p className="text-sm font-bold uppercase tracking-widest text-coral">
+            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
               Depoimentos
             </p>
-            <h2 className="mt-2 text-3xl font-black text-navy">
+            <h2 className="mt-2 text-center text-3xl font-black text-navy">
               O que dizem sobre o trabalho
             </h2>
           </Reveal>
@@ -316,12 +318,14 @@ export default async function Home() {
           </div>
 
           <Reveal delay={0.2}>
-            <Link
-              href="/sobre"
-              className="mt-8 inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
-            >
-              Conheça mais sobre o Tales <ArrowUpRight size={16} />
-            </Link>
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/sobre"
+                className="inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
+              >
+                Conheça mais sobre o Tales <ArrowUpRight size={16} />
+              </Link>
+            </div>
           </Reveal>
         </div>
       </section>
