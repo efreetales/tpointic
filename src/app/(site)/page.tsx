@@ -12,6 +12,8 @@ import {
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
+import { LogoMarquee } from "@/components/logo-marquee";
+import { CaseParallaxShowcase } from "@/components/case-parallax-showcase";
 
 const SERVICOS = [
   {
@@ -71,24 +73,45 @@ export default async function Home() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/10 to-transparent" />
 
-        <div className="relative mx-auto grid max-w-5xl items-end gap-8 px-6 py-20 sm:py-28 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="flex flex-col items-start">
-            <div className="animate-fade-up flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-coral">
-              <Sparkles size={14} /> Design que gera resultado
+        {/* Foto — fica fora do fluxo centralizado do texto e sempre rente à
+            faixa de logos abaixo, independente de quanto texto houver. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto hidden max-w-5xl px-6 lg:flex lg:justify-end">
+          <div
+            className="animate-fade-up relative aspect-[2/3] w-full max-w-[380px]"
+            style={{ animationDelay: "0.15s" }}
+          >
+            <div className="absolute inset-0 rounded-full bg-coral/25 blur-3xl" />
+            <Image
+              src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-hero-v2.webp"
+              alt="Tales Pereira"
+              fill
+              className="relative object-contain object-bottom"
+              priority
+              quality={95}
+              sizes="380px"
+            />
+          </div>
+        </div>
+
+        {/* Texto — centralizado verticalmente numa área de altura mínima
+            própria, sem depender da altura da foto ao lado. */}
+        <div className="relative mx-auto flex min-h-[70vh] max-w-5xl items-center px-6 sm:min-h-[75vh] lg:min-h-[80vh]">
+          <div className="flex flex-col items-start lg:max-w-[55%]">
+            <div className="animate-fade-up flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-coral backdrop-blur-sm">
+              <Sparkles size={14} /> Tales Pereira &middot; UX Leader
             </div>
             <h1
-              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-navy sm:text-7xl"
+              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-navy sm:text-5xl lg:text-6xl"
               style={{ animationDelay: "0.1s" }}
             >
-              Design que aproxima pessoas e produtos
+              Design estratégico turbinado por IA.
             </h1>
             <p
               className="animate-fade-up mt-6 max-w-xl text-lg text-slate"
               style={{ animationDelay: "0.2s" }}
             >
-              Sou Tales Pereira — Gestor de Design, Service Designer e UX
-              Researcher. Mais de 15 anos criando serviços e produtos digitais
-              para grandes empresas.
+              15+ anos unindo liderança, design e tecnologia para transformar
+              problemas complexos em resultados.
             </p>
             <div
               className="animate-fade-up mt-10 flex flex-wrap gap-4"
@@ -106,38 +129,19 @@ export default async function Home() {
               </Link>
               <Link
                 href="/cases"
-                className="rounded-full border border-border px-6 py-3 text-sm font-bold text-navy transition-colors hover:border-coral hover:text-coral"
+                className="rounded-full border border-white/40 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10"
               >
                 Ver portfólio
               </Link>
             </div>
-          </div>
-
-          <div
-            className="animate-fade-up relative mx-auto hidden aspect-[2/3] w-full max-w-[380px] lg:block"
-            style={{ animationDelay: "0.15s" }}
-          >
-            <div className="absolute inset-0 rounded-full bg-coral/25 blur-3xl" />
-            <Image
-              src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-hero-v2.webp"
-              alt="Tales Pereira"
-              fill
-              className="relative object-contain object-bottom"
-              priority
-              quality={95}
-              sizes="380px"
-            />
           </div>
         </div>
       </section>
 
       {/* Empresas / social proof strip */}
       <Reveal>
-        <section className="border-y border-border bg-surface/40 px-6 py-6">
-          <p className="mx-auto max-w-5xl text-center text-xs font-bold uppercase tracking-widest text-gray">
-            Mercado Livre &middot; UOL &middot; CI&amp;T &middot; Vivo &middot;
-            Carrefour &middot; SulAmérica &middot; Dasa &middot; RD/Drogasil
-          </p>
+        <section className="border-y border-border bg-white py-8">
+          <LogoMarquee />
         </section>
       </Reveal>
 
@@ -179,8 +183,8 @@ export default async function Home() {
 
       {/* Cases */}
       {cases.length > 0 && (
-        <section className="border-t border-border bg-surface/30 px-6 py-20">
-          <div className="mx-auto max-w-5xl">
+        <section className="relative border-t border-border">
+          <div className="mx-auto max-w-5xl px-6 pt-20">
             <Reveal>
               <p className="text-sm font-bold uppercase tracking-widest text-coral">
                 Portfólio
@@ -189,46 +193,19 @@ export default async function Home() {
                 Cases recentes
               </h2>
             </Reveal>
+          </div>
 
-            <div className="mt-10 grid gap-6 sm:grid-cols-3">
-              {cases.map((c, i) => (
-                <Reveal key={c.id} delay={i * 0.1}>
-                  <Link
-                    href={`/cases/${c.slug}`}
-                    className="group block h-full overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-1 hover:border-coral"
-                  >
-                    {c.capa_url && (
-                      <div className="relative aspect-video overflow-hidden bg-bg">
-                        <Image
-                          src={c.capa_url}
-                          alt={c.titulo}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-105"
-                          sizes="(min-width: 640px) 33vw, 100vw"
-                        />
-                      </div>
-                    )}
-                    <div className="p-5">
-                      {c.cliente && (
-                        <p className="text-xs font-bold uppercase tracking-widest text-coral">
-                          {c.cliente}
-                        </p>
-                      )}
-                      <h3 className="mt-1 font-bold text-navy">{c.titulo}</h3>
-                    </div>
-                  </Link>
-                </Reveal>
-              ))}
-            </div>
+          <div className="mt-14">
+            <CaseParallaxShowcase cases={cases} />
+          </div>
 
-            <Reveal delay={0.2}>
-              <Link
-                href="/cases"
-                className="mt-8 inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
-              >
-                Ver portfólio completo <ArrowUpRight size={16} />
-              </Link>
-            </Reveal>
+          <div className="mx-auto max-w-5xl px-6 py-14 text-center">
+            <Link
+              href="/cases"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-bold text-navy transition-colors hover:border-coral hover:text-coral"
+            >
+              Ver portfólio completo <ArrowUpRight size={16} />
+            </Link>
           </div>
         </section>
       )}

@@ -18,14 +18,12 @@ import {
   Heart,
   MapPin,
   MessageDots,
-  Presentation,
   Search,
   Send,
   ShieldCheck,
   Smile,
   Star,
   Users,
-  Video,
   Zap,
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
@@ -34,6 +32,7 @@ import { SectionSeam } from "@/components/section-seam";
 import { StatRing } from "@/components/stat-ring";
 import { ScreenMarquee } from "@/components/screen-marquee";
 import { Phone3D } from "@/components/phone-3d";
+import { Bleed } from "@/components/bleed";
 import type { Case } from "@/lib/cases";
 
 // Shared icon dictionary — used both by `steps` and `destaques.icon`, keyed
@@ -387,14 +386,14 @@ export function CaseBody({ c }: { c: Case }) {
             </h2>
           </Reveal>
           <Reveal delay={0.15}>
-            <div className="mx-auto mt-14 max-w-6xl overflow-hidden rounded-2xl">
+            <Bleed className="mt-14">
               <iframe
                 src={embedPrototypeUrl(c.figma_url)}
-                className="h-[700px] w-full"
+                className="h-[1500px] w-full"
                 allow="fullscreen"
                 allowFullScreen
               />
-            </div>
+            </Bleed>
             <div className="mx-auto mt-6 flex max-w-3xl justify-center">
               <a
                 href={c.figma_url}
@@ -524,14 +523,16 @@ export function CaseBody({ c }: { c: Case }) {
 
       {/* Vídeo */}
       {c.video_url && (
-        <section className="px-6 py-20">
+        <section className="relative bg-bg px-6 py-32">
+          <SectionSeam color={nextSeam()} />
           <Reveal>
-            <p className="mx-auto flex max-w-4xl items-center gap-2 text-sm font-bold uppercase tracking-widest text-coral">
-              <Video size={16} /> Vídeo
-            </p>
+            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Vídeo</p>
+            <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
+              Eu explico esse case
+            </h2>
           </Reveal>
-          <Reveal delay={0.1}>
-            <div className="mx-auto mt-6 max-w-5xl overflow-hidden rounded-3xl border border-border bg-surface">
+          <Reveal delay={0.15}>
+            <Bleed className="mt-14">
               {c.video_url.endsWith(".mp4") ? (
                 <video src={c.video_url} controls className="w-full" preload="metadata" />
               ) : (
@@ -544,25 +545,27 @@ export function CaseBody({ c }: { c: Case }) {
                   />
                 </div>
               )}
-            </div>
+            </Bleed>
           </Reveal>
         </section>
       )}
 
       {/* Slides */}
       {c.slides_url && (
-        <section className="px-6 py-20">
+        <section className="relative bg-bg px-6 py-32">
+          <SectionSeam color={nextSeam()} />
           <Reveal>
-            <p className="mx-auto flex max-w-4xl items-center gap-2 text-sm font-bold uppercase tracking-widest text-coral">
-              <Presentation size={16} /> Apresentação
-            </p>
+            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Apresentação</p>
+            <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
+              Veja a apresentação completa
+            </h2>
           </Reveal>
-          <Reveal delay={0.1}>
-            <div className="mx-auto mt-6 max-w-5xl overflow-hidden rounded-3xl border border-border bg-surface">
+          <Reveal delay={0.15}>
+            <Bleed className="mt-14">
               <div className="relative aspect-video">
                 <iframe src={c.slides_url} className="absolute inset-0 h-full w-full" allowFullScreen />
               </div>
-            </div>
+            </Bleed>
           </Reveal>
         </section>
       )}

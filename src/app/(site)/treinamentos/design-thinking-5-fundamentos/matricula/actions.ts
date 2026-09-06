@@ -67,6 +67,7 @@ export async function matricular(
     .eq("id", turmaId)
     .maybeSingle();
 
+  let emailEnviado = false;
   if (turma) {
     try {
       await sendConfirmacaoMatricula({
@@ -75,9 +76,18 @@ export async function matricular(
         turmaNome: turma.nome,
         dataAula: turma.data_aula,
       });
+      emailEnviado = true;
     } catch (err) {
       console.error("Erro ao enviar e-mail de confirmação:", err);
     }
+  }
+
+  if (!emailEnviado) {
+    return {
+      status: "ok",
+      message:
+        "Matrícula confirmada! Não conseguimos enviar o e-mail de confirmação agora, mas sua vaga está garantida — qualquer dúvida, fale no contato.",
+    };
   }
 
   return {

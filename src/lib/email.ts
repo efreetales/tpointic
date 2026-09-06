@@ -20,7 +20,7 @@ export async function sendNotificacaoTurma({
     return { skipped: true, enviados: 0 };
   }
 
-  const from = process.env.RESEND_FROM_EMAIL ?? "TPointic <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL ?? "TPointic <matriculas@talespereira.com>";
   const html = `
     <div style="font-family: sans-serif; color: #2D3142; max-width: 480px; margin: 0 auto; white-space: pre-line;">
       <p style="color: #EF8354; font-weight: bold; letter-spacing: 0.05em; text-transform: uppercase; font-size: 12px;">TPointic</p>
@@ -29,13 +29,24 @@ export async function sendNotificacaoTurma({
     </div>
   `;
 
-  await Promise.all(
+  const results = await Promise.all(
     destinatarios.map((to) =>
       resend.emails.send({ from, to, subject: assunto, html }),
     ),
   );
 
-  return { skipped: false, enviados: destinatarios.length };
+  // Same non-throwing-on-API-error behavior as sendConfirmacaoMatricula
+  // below — check each result explicitly instead of trusting Promise.all
+  // to reject.
+  const falhas = results.filter((r) => r.error);
+  if (falhas.length > 0) {
+    console.error("Falha ao enviar notificação para parte dos destinatários:", falhas);
+  }
+
+  return {
+    skipped: false,
+    enviados: destinatarios.length - falhas.length,
+  };
 }
 
 export async function sendConfirmacaoMatricula({
@@ -62,8 +73,8 @@ export async function sendConfirmacaoMatricula({
     timeZone: "America/Sao_Paulo",
   });
 
-  return resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "TPointic <onboarding@resend.dev>",
+  const { data, error } = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL ?? "TPointic <matriculas@talespereira.com>",
     to,
     subject: "Matrícula confirmada — Os 5 Fundamentos do Design Thinking",
     html: `
@@ -78,4 +89,12 @@ export async function sendConfirmacaoMatricula({
       </div>
     `,
   });
+
+  // resend.emails.send() resolves normally even when the API rejects the
+  // send (e.g. sandbox `onboarding@resend.dev` sender only delivering to the
+  // account's own address) — it does not throw. Callers relying on a thrown
+  // error to detect failure never saw it, so the UI kept claiming "email
+  // sent" even when nothing went out. Throw explicitly so callers can react.
+  if (error) throw error;
+  return data;
 }
