@@ -1,0 +1,200 @@
+---
+name: tpointic-wow-case
+description: Use ao criar ou popular um case "uau" (visualmente impactante) — inclui QUALQUER case do site hoje, já que esse é o template padrão de /cases/[slug]. Ex. /cases/agendamento-online-sulamerica.
+---
+
+# TPointic — páginas de case "uau"
+
+Este é o template **padrão** de todos os cases do site (`src/app/(site)/cases/[slug]/page.tsx` → `case-body.tsx`), não mais um experimento à parte. Nasceu como uma página standalone hardcoded pro case da Sulamérica (validada e aprovada pelo usuário), depois generalizada: o schema da tabela `cases` no Supabase ganhou colunas novas pra caber esse formato rico, e `case-body.tsx` virou uma versão data-driven dele — **cada seção só aparece se o case tiver o dado correspondente preenchido**, então um case de app (com telas, protótipo Figma) e um case de service design (sem nenhuma tela) ou de palestra (com slides, sem produto) naturalmente saem diferentes um do outro sem precisar de lógica especial — cada um usa só as seções que fazem sentido pra ele.
+
+Leia `DESIGN_SYSTEM.md` primeiro para os tokens base.
+
+## Como popular um case
+
+Não tem UI de admin pra isso ainda — `/admin/cases` só edita os 5 campos originais (`titulo`, `slug`, `cliente`, `resumo`, `conteudo`); os campos ricos abaixo precisam ser escritos via SQL (`apply_migration`/`execute_sql`, projeto Supabase `drjbumieuwuzsjlpqwxg`), um `update cases set ... where slug = '...'` por vez. Colunas em `cases` (tipo `Case` espelhado em `src/lib/cases.ts`) e a seção que cada uma alimenta:
+
+| Coluna | Tipo | Formato | Seção |
+|---|---|---|---|
+| `titulo`, `cliente`, `resumo`, `capa_url` | text | — | Hero (já existiam) — **`titulo` é o nome formal do case** (usado em listagens, metadata, nav), não o headline de marketing do hero |
+| `hero_title` | text | texto simples, nullable | Headline principal do hero (ex. "Marcar consulta") — cai pra `titulo` quando null. **Erro já cometido**: usar `titulo` direto como `<h1>` do hero funciona pra maioria dos cases, mas destrói o headline criativo de um case que já tinha um (a Sulamérica tinha "Marcar consulta / sem esperar" e virou "Agendamento Online – Sulamérica" na generalização do template, porque `titulo` é literalmente esse nome formal) — sempre setar `hero_title` quando o case tiver (ou merecer) um headline de marketing diferente do nome formal |
+| `hero_accent` | text | texto simples | 2ª linha do headline do hero, em destaque cyan — aparece em **qualquer** hero, não só com `Phone3D` |
+| `problema_texto` | text | `**trecho**` marca o destaque roxo inline | Frase de impacto do problema |
+| `conteudo` | text | texto livre, `\n\n` separa parágrafos | Narrativa longa (objetivo/processo/papel) — seção própria, sempre visível quando preenchido, distinta do `problema_texto` |
+| `steps` | jsonb | `{icon, title, description}[]` | Seção de etapas — `icon` é uma chave de `STEP_ICONS` em `case-body.tsx` (`send`, `map-pin`, `check-circle`, `search`, `star`, `users`, `clock`, `zap`, `message-circle`, `shield-check`; fora dessa lista cai num ícone genérico) |
+| `steps_eyebrow`, `steps_title` | text | texto simples, nullable | Título da seção de etapas — default `"A solução"` / `"Como funciona"` quando null. **Sempre preencher os dois quando `steps` for processo de design, não o fluxo do produto** (ver nota abaixo) |
+| `destaques` | jsonb | `{label, valor, icon?}[]` (já existia, `icon` é novo) | "Resultados" — valores que terminam em `%` viram `StatRing` animado sobre `.animated-gradient`; os demais (texto livre, ex. "redução de chamadas", ou não-percentuais, ex. "8 designers") entram como linha de destaque abaixo dos anéis se houver pelo menos um `%` no case, ou como grid de `Counter` simples (com título "Resultados" e `SectionSeam`, igual às outras seções) se não houver nenhum. `icon` é opcional, mesma chave de `ICONS` usada em `steps` (mais `activity`, `chart`, `trending-up`, `smile`, `heart`) — some sem quebrar nada quando ausente |
+| `figma_url` | text | URL do embed/proto (já existia) | Protótipo — full width, sem moldura, com `&hide-ui=1` acrescentado automaticamente no render (não precisa salvar isso no banco) |
+| `screens` | jsonb | `{url, alt}[]` | Hero com `Phone3D` + esteira "Telas em destaque" (`ScreenMarquee`) — as duas seções só aparecem juntas, dependem do mesmo campo |
+| `style_guide` | jsonb | `{colors?: {hex,name,role}[], patterns?: {title,desc}[]}` | Seção "Style guide" — `colors` e `patterns` são independentes, pode ter só um dos dois |
+| `gallery` | jsonb | `{url, alt, caption?, fit?: "cover"\|"contain", bg?: hex}[]` | Galeria sticky-parallax (substitui a lista simples de `imagens` quando preenchida) — texto à esquerda/imagem à direita, `bg` dá a cor de fundo do painel (default: rotação automática de 4 tons escuros) |
+| `imagens`, `video_url`, `slides_url`, `pdf_url` | (já existiam) | — | Galeria simples (fallback quando `gallery` está vazio), vídeo, slides, PDF — sem mudança |
+
+Cases sem nenhum campo rico continuam funcionando — o hero sempre ganha o fundo animado (com ou sem imagem/produto ao lado) e as seções condicionais simplesmente não aparecem; a migração pra esse template não quebra os cases ainda não trabalhados, só deixa o hero deles mais bonito de graça.
+
+## Estrutura de seções (ordem em `case-body.tsx`, cada uma condicional)
+
+1. **Hero** — **sempre** full-screen com `.animated-gradient` no fundo, não importa se o case tem produto ou não (esse fundo é o que faz o hero parecer "uau" em vez de só um bloco de texto). A coluna da direita varia: `Phone3D` quando há `screens`; a `capa_url` num card arredondado (`aspect-[4/3]`, `rounded-3xl`, `object-cover`) quando não há `screens` mas há capa; nada (headline sozinha, centralizada, `max-w-3xl`) quando nenhum dos dois existe. **Erro já cometido**: a primeira versão só usava o gradiente quando `screens` estava preenchido, e caía num hero "clássico" sem graça (fundo escuro liso ou imagem de capa crua) pros outros cases — todo case agora tem o mesmo fundo vibrante, só a ilustração ao lado muda.
+2. **O problema** (`problema_texto`) — frase grande centralizada, `**trecho**` vira `<span className="text-[#7e20cf]">` (cor exata do design system, nunca um token que resolve diferente por contexto).
+3. **Etapas** (`steps` + `steps_eyebrow`/`steps_title`) — N passos com ícone MynaUI em círculo + seta `ArrowRight` entre eles (grid `sm:grid-cols-3`), fundo `bg-surface`. **Erro já cometido**: o título default ("A solução" / "Como funciona") só faz sentido quando `steps` descreve o **fluxo do produto pro usuário final** (ex. Sulamérica: Pedido → Match → Confirmado — assim que o app funciona). Quando `steps` é na verdade o **processo de design/pesquisa** (ex. eSIM: Imersão → Definição → Prototipação; UOL Deezer: Pesquisa → Testes → Roadmap), usar esse mesmo título é enganoso — diz "como o produto funciona" e mostra "como a gente trabalhou". Nesse caso, sempre setar `steps_eyebrow`/`steps_title` com algo que deixe claro que é processo (ex. `"O processo"` / `"Como chegamos lá"`), nunca deixar no default.
+4. **Resultados** (`destaques`) — `<StatRing>` (`src/components/stat-ring.tsx`) sobre `.animated-gradient` quando há valores percentuais, senão grid de `Counter` **com o mesmo cabeçalho** ("Resultados" / "O que mudou de verdade") e `SectionSeam`, pra não ficar um bloco de números "jogado" sem contexto. **Erro já cometido**: a primeira versão do grid de `Counter` não tinha eyebrow/título nenhum — números apareciam soltos, sem dizer o que representavam. Ambas as variantes aceitam `icon` opcional por item (ver tabela de campos) — um círculo pequeno com o ícone acima do `StatRing` ou do número do `Counter`, reforçando visualmente o que a métrica representa (ex. relógio pra tempo, sorriso pra NPS). **Regra crítica**: nunca envolver `<StatRing>` num wrapper `rounded-full bg-white` — quebra o layout (label vaza pra fora do formato oval). O componente já é autossuficiente: número e track brancos, arco na cor de destaque, pensado pra ir direto sobre fundo escuro/gradiente.
+5. **Conteúdo** (`conteudo`) — narrativa longa, sempre visível quando preenchido, é o "por baixo do capô" do case, distinto da frase de impacto curta do item 2. Renderizado por `renderConteudo()` (não é mais texto solto): quebra o texto em blocos por `\n\n` e decide o que cada bloco é — uma linha única e curta (≤60 caracteres, ex. "Qual o desafio?", "O que foi feito?", "Meu papel") vira um `<h3>` com peso de verdade; um bloco onde toda linha começa com `- ` vira uma lista de verdade (`<ul>`/`<li>`, marcador na cor de destaque) em vez de hífens soltos no meio do texto corrido; qualquer outro bloco é um parágrafo normal. **Erro já cometido**: a primeira versão usava só `whitespace-pre-line` com CSS (`[&>p]:mt-4`) em cima do texto cru — como o texto não tem `<p>` nenhum (é só `\n\n`), esse seletor nunca pegava nada, e os subtítulos ficavam com a mesma aparência do corpo do texto, sem destaque nenhum.
+6. **Protótipo** (`figma_url`) — full width, **sem moldura/borda**, `&hide-ui=1` acrescentado automaticamente no render pra esconder o rodapé/toolbar do Figma (nome da página, "editado há X", setas) — sem isso o embed parece uma ferramenta externa colada na página, não parte do case.
+7. **Telas em destaque** (`screens`) — esteira contínua (`ScreenMarquee`), mesmo array de telas do hero.
+8. **Style guide** (`style_guide`) — grid de cores extraídas + cards de padrões de UI, cada metade independente.
+9. **Galeria de impacto — pilha com parallax** (`gallery`) — em vez de blocos empilhados com espaço entre eles, cada bloco **cobre o anterior ao rolar** (efeito tipo Apple/Stripe). CSS puro, sem JS:
+   ```tsx
+   <div className="relative mt-16"> {/* sem Reveal, sem gap entre os blocos */}
+     <div className="sticky top-0 flex h-screen w-full flex-col overflow-hidden lg:flex-row" style={{ backgroundColor: item.bg ?? fallback }}>
+       {/* texto (metade esquerda em telas grandes) */}
+       {/* imagem (metade direita, ou largura total sem legenda) */}
+     </div>
+     {/* ...mais blocos */}
+   </div>
+   ```
+   Cada bloco é `sticky top-0 h-screen` — como são irmãos no fluxo normal, cada um reserva sua própria "fatia" de 100vh de scroll; ao passar por essa fatia o bloco fica pinado no topo até o próximo (mais adiante no DOM, portanto pintado por cima) alcançar `top:0` e cobri-lo. **Sem gap entre os blocos** (nada de `mt-6`/`space-y`) e **sem `<Reveal>` envolvendo** — a cobertura em si já é a transição, animar opacidade por cima confunde.
+   - **Layout: texto à esquerda, imagem à direita** (`flex-col` no mobile, `lg:flex-row` em telas grandes — cada metade `lg:w-1/2`). Sem legenda (`caption` vazio), a imagem ocupa a largura toda (`lg:w-full`) em vez de deixar metade da tela vazia. Substituiu o layout anterior (imagem full-bleed com legenda flutuando por cima, `absolute bottom-16` + gradiente escuro pra contraste) — o layout em colunas lê melhor e evita competir texto-sobre-foto.
+   - **Cor de fundo distinta por painel** (`item.bg`, hex; default gira por uma paleta de 4 tons escuros — `GALLERY_BG_FALLBACK` em `case-body.tsx`) — é o que faz o efeito de "um bloco cobrindo o outro" realmente se notar ao rolar; sem isso, blocos consecutivos com o mesmo `bg-bg` pareciam só "a imagem trocou", não um bloco novo cobrindo o anterior.
+   - `fit: "cover"` — imagem preenche a metade (ou a largura toda) via `object-cover`, pode cortar as bordas; usar pra fotos que enchem bem o frame (workshop, ambiente).
+   - `fit: "contain"` — `object-contain` com um pouco de padding (`p-8`), nunca corta; usar pra diagramas, mockups, prints de tela — qualquer coisa em que perder a borda perde informação. **Erro já cometido**: numa versão anterior (layout full-bleed antigo) o container de `contain` era uma caixa estreita (`max-w-md h-[60%]`, pensada só pra mockup de celular) reaproveitada pra diagramas largos do eSIM — a imagem ficava minúscula cercada de preto. Como agora a imagem já vive dentro da metade (~50vw) da tela, esse problema não se repete, mas o princípio continua valendo em qualquer lugar do site: nunca forçar uma caixa estreita pensada pra um formato (celular) sobre conteúdo de formato diferente (diagrama largo).
+   - Sem `gallery` preenchido, cai pro fallback antigo: `imagens[]` como galeria simples, uma imagem grande por vez, sem o efeito de pilha.
+10. **Vídeo / Slides / PDF** (`video_url`/`slides_url`/`pdf_url`) — sem mudança, cards/iframes condicionais como já existiam no template antigo.
+11. **CTA final** — mesmo `.animated-gradient`, título + "Ver todos os cases" e, se o case tiver `figma_url`, "Abrir arquivo no Figma".
+
+`SectionSeam` (ver abaixo) entra entre as seções de fundo plano — a função `nextSeam()` no topo de `case-body.tsx` alterna ciano/roxo a cada seção chamada, então a ordem de chamada nas seções condicionais importa (mesma seção sempre usa a mesma cor entre re-renders, mas adicionar/remover uma seção condicional desloca a alternância das seguintes — não é um bug, só não esperar cores fixas por seção).
+
+## Delimitação entre seções
+
+No tema escuro (`.site-theme`), `bg-bg` (`#0a0a0a`) e `bg-surface` (`#141414`) são quase idênticos — em seções longas de texto/padding grande (`py-32`), alternar só entre eles não deixa claro onde uma seção termina e a próxima começa; o resultado lê como "muito preto" sem demarcação. `.animated-gradient` já resolve isso bem sozinho (cor forte, sem ambiguidade) — o problema é só nas seções "planas" entre os blocos de gradiente.
+
+**Fix validado**: `<SectionSeam color="#66fcf1" />` (`src/components/section-seam.tsx`) — colocar como primeiro filho de cada `<section className="relative ...">` de fundo plano (`bg-bg`/`bg-surface`). Combina duas coisas sutis: uma linha fina em gradiente (`h-px bg-gradient-to-r from-transparent via-white/10 to-transparent`) no topo da seção, e um glow radial desfocado (`blur-3xl`, opacity ~0.14) na cor de destaque, também no topo. Alternar a cor entre o ciano (`#66fcf1`) e o roxo (`#7e20cf`) da identidade do site a cada seção reforça a separação sem introduzir uma paleta nova. A seção só precisa de `relative` (não precisa de `overflow-hidden`) — **importante**: não adicionar `overflow-hidden` numa seção que contenha blocos `sticky` (ver a galeria com parallax abaixo) porque quebra o `position: sticky` do filho; o glow em si não precisa de clipping porque é pequeno e de opacidade baixa o suficiente pra não incomodar se vazar um pouco.
+
+Use isso como o padrão pra "mais formas de delimitar seções" além da alternância de tom — é barato, não compete com o conteúdo, e funciona mesmo em seções que já têm outros elementos absolutamente posicionados.
+
+**Regra relacionada — mídia sempre em largura generosa**: imagem, vídeo ou protótipo pequeno/estreito solto no meio de uma seção larga vira ruído visual, não protagonismo — e enfraquece a própria separação entre seções (uma seção com conteúdo "sumido" no meio de muito espaço vazio se confunde com a seção vizinha). Toda mídia inserida num case (galeria, vídeo, protótipo Figma/v0) deve ocupar o máximo de largura disponível da seção — `max-w-5xl`/`max-w-6xl` pelo menos, nunca `max-w-md` ou menor a não ser que o conteúdo em si seja um mockup de celular de verdade (aí sim faz sentido ficar estreito, ver `Phone3D`/`PhoneSlideshow`).
+
+## Moldura de celular em 3D (Three.js)
+
+`<Phone3D screens={[{src}, ...]}>` (`src/components/phone-3d.tsx`) — versão em WebGL real do celular com slideshow, usando `three` (instalado como dependência do projeto) puro (sem react-three-fiber), corpo carregado via `GLTFLoader` a partir de um `.glb` real (não geometria primitiva à mão — ver histórico abaixo do porquê). Renderer com `alpha:true`, `premultipliedAlpha:false`, `outputColorSpace = SRGBColorSpace`.
+
+### Geometria primitiva (`RoundedBoxGeometry` etc.) não é suficiente
+
+A primeira versão deste componente montava o corpo à mão (`RoundedBoxGeometry` pro bezel, `BoxGeometry` pros botões, `CircleGeometry` pra câmera). Depois de resolver todos os bugs de enquadramento/transparência, o usuário ainda achou o resultado "uma moldura preta retangular, sem aparência de celular" — teto de qualidade inerente a geometria feita à mão. **Decisão validada: sempre usar um modelo `.glb` real** (ex. poly.pizza, Sketchfab, Quaternius — CC0/gratuito) como corpo, não reconstruir a partir de primitivas. Isso trouxe uma cadeia própria de problemas (documentados abaixo), mas o resultado final é muito superior.
+
+### Escolher o modelo `.glb` certo
+
+Nem todo modelo "celular 3D" grátis serve. Antes de integrar, baixar o arquivo e inspecionar sua estrutura (não dá pra saber só pela thumbnail):
+
+- **Sem UV coords**: um modelo baixo-poli (ex. Quaternius) pode ter materiais de cor sólida sem `TEXCOORD_0` em nenhum primitivo — impossível aplicar textura na tela. Detectar isso **antes** de gastar tempo integrando: dá pra inspecionar o `.glb` manualmente em Node sem precisar de um parser GLTF completo — é um container binário simples (12 bytes de header + 4 bytes de tamanho do chunk JSON + o JSON do chunk a partir do offset 20):
+  ```js
+  const buf = fs.readFileSync("model.glb");
+  const jsonLen = buf.readUInt32LE(12);
+  const json = JSON.parse(buf.slice(20, 20 + jsonLen).toString("utf8"));
+  json.meshes.forEach(m => m.primitives.forEach(p =>
+    console.log(m.name, Object.keys(p.attributes), "material:", json.materials[p.material]?.name)
+  ));
+  ```
+  Sem `TEXCOORD_0` em nenhum primitivo relevante → esse modelo não serve pra texturizar a tela.
+- **Modelo "hero angle" (ângulo artístico cravado nos vértices)**: um modelo de vitrine (ex. baixado do Sketchfab) pode vir com um ângulo de câmera "bonito" **cravado diretamente nas posições dos vértices**, não como transform de node (confirmável checando se `json.nodes` tem algum `rotation`/`scale`/`translation` — se não tiver nenhum, o tilt é geometria crua). Um simples swap de eixo (`rotation.x/y = 90°`) não resolve, porque não é um múltiplo de 90°. Nesse caso é preciso PCA sobre os vértices (autovetores da matriz de covariância — eixo de menor variância = espessura/normal da tela) pra achar a orientação real e realinhar. Prefira evitar esse tipo de modelo quando houver alternativa mais simples — é bem mais trabalho.
+- **Malha "Pantalla"/"tela" que não é plana**: mesmo com UVs, uma mesh nomeada como tela pode não ser um plano simples (pode envolver bordas curvas, por exemplo) — texturizar direto nela pode sair distorcida/fantasmada (ver duplicação de face abaixo). Sempre conferir a bounding box local da mesh candidata antes de assumir que é um retângulo plano.
+- **✅ O que funcionou bem de verdade**: um modelo simples com uma mesh dedicada de **chroma-key** — material verde puro (`baseColorFactor: [0,1,0,1]`, nome tipo `"chroma"`) marcando exatamente onde entra a tela, já recortada com o notch incluso na própria geometria. Poucos KB (vs. dezenas de MB de um modelo "realista" cheio de detalhe desnecessário), carrega rápido, e a mesh chroma dá a forma exata (incluindo recortes tipo notch) pra texturizar — nada de aproximar por bounding box. **Esse é o padrão recomendado ao pedir/gerar um novo modelo de celular.**
+
+### Aplicando a textura na mesh de chroma-key
+
+1. Encontrar a mesh cujo material se chama `"chroma"` (ou equivalente) via `model.traverse` + checar `material.name`.
+2. **Não** criar um plane novo do tamanho da bounding box dela — isso ignora recortes côncavos (como o notch) que a geometria real já tem, e a textura acaba cobrindo por cima do notch, fazendo ele "desaparecer". Em vez disso, **trocar o material da própria mesh** (`obj.material = screenMat`) — a silhueta certa (com notch e tudo) vem de graça.
+3. **Conferir as UVs exportadas antes de confiar nelas** — o unwrap pode vir ruim/fragmentado (textura aparece "explodida"/em fatias diagonais). Nesse caso, recalcular UVs manualmente com projeção planar simples: achar os 2 eixos locais não-degenerados da mesh (o terceiro é constante, a mesh é plana) e mapear `u`/`v` como a posição normalizada de cada vértice nesses eixos (0 a 1). Preserva o contorno real (inclusive o notch) e corrige o mapeamento:
+   ```js
+   const axes = (["x","y","z"]).filter(a => range[a] > 1e-6); // os 2 não-degenerados
+   uv[i*2]   = (pos[axes[0]] - min[axes[0]]) / range[axes[0]];
+   uv[i*2+1] = (pos[axes[1]] - min[axes[1]]) / range[axes[1]];
+   geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+   ```
+4. **Proporção da tela vs. proporção dos prints não bate 100%?** É comum (ex. corte verde ~2.22 h/w vs. screenshot real ~2.165 h/w — diferença de ~2%). Prints de app têm conteúdo real até a borda (setinha de voltar, ícones) — **não fazer crop tipo `object-fit: cover`**: cortar as bordas corta conteúdo real da UI, o que é bem mais perceptível que um leve esticamento. Para uma diferença pequena (∼2-3%), preferir esticar a imagem inteira pra caber (UV padrão 0→1) em vez de recortar.
+
+### Corpo com múltiplas meshes de vidro/tela sobrepostas
+
+Um modelo "realista" (baixado do Sketchfab, por ex.) pode ter uma mesh de vidro frontal (`"Vidrio_Negro"` ou similar) com o **mesmo tamanho do corpo inteiro** (não só a área da tela) posicionada bem na frente da mesh real da tela — isso cobre a tela por completo com preto opaco. Sintoma: tela sempre preta mesmo com a textura carregada certinha. Diagnóstico: logar a bounding box de cada mesh do modelo e comparar tamanhos/posições — a mesh "vidro" costuma ter praticamente a mesma silhueta do corpo todo, não só da tela. Fix mais simples: esconder essa mesh de vidro (`obj.visible = false`). Modelos assim também podem ter a mesh de tela duplicada (2 primitivos idênticos, provavelmente 1 pra cada lado de uma superfície "de olhar dos dois lados"): texturizar as duas ao mesmo tempo com `side: THREE.DoubleSide` produz uma imagem fantasma/espelhada por cima da outra — melhor identificar e esconder a que não fica de frente pra câmera (calcular a normal média da malha e comparar com o eixo `+Z` final) do que usar `DoubleSide` como atalho.
+
+### Transição de tela: slide, não fade nem corte seco
+
+O pedido explícito pro slideshow (2D e 3D) é sempre **slide horizontal** (como um filminho passando), nunca fade. Um corte seco (`material.map = próxima; needsUpdate = true`) funciona mas não é o efeito pedido; um fade de opacidade no MeshBasicMaterial revela o bezel escuro atrás por um instante (lê como "fundo preto quebrado"). O jeito certo pra um slide de verdade sobre uma geometria com recorte (tipo o notch) é um `THREE.ShaderMaterial` custom com dois uniforms de textura (`uCurrent`, `uNext`) e um uniform `uProgress` (0→1, animado com easing ao longo de ~500ms), fazendo um "wipe" que desloca a amostragem de UV de cada textura:
+```glsl
+float threshold = 1.0 - uProgress;
+if (vUv.x < threshold) {
+  color = texture2D(uCurrent, vUv + vec2(uProgress, 0.0));
+} else {
+  color = texture2D(uNext, vUv + vec2(uProgress - 1.0, 0.0));
+}
+```
+**Cuidado com color management num `ShaderMaterial` custom — mas na direção oposta da intuição.** `renderer.outputColorSpace = SRGBColorSpace` **não** é um post-process aplicado a tudo que é renderizado — esse re-encode de sRGB só existe dentro do chunk `<colorspace_fragment>`, que faz parte do `ShaderLib` interno dos materiais prontos do three (`MeshBasicMaterial` etc.); um `ShaderMaterial` escrito à mão não ganha isso de graça. A primeira tentativa aqui decodificava a textura manualmente (`srgbToLinear`) achando que o renderer reencodaria o resultado linear no final — sem esse reencode, o que chega no framebuffer é a metade "errada" do roundtrip: valores lineares interpretados direto como sRGB, o que dá exatamente o sintoma clássico de "esqueceu o gamma": imagem mais escura, contraste alto, cores estranhas. **Solução correta e mais simples: não fazer nenhuma conta de cor no shader.** Deixar `texture.colorSpace` no padrão (sem setar, fica `THREE.NoColorSpace`) — `texture2D()` então retorna os bytes sRGB crus, exatamente como foram exportados — e escrever isso direto em `gl_FragColor` sem decode nem encode. Pra um shader que só faz passthrough/wipe (sem nenhum cálculo de luz), isso reproduz a imagem original com fidelidade total, do mesmo jeito que uma tag `<img>` mostraria. Só vale a pena mexer em `srgbToLinear`/`colorSpace` se o shader estiver de fato misturando/iluminando cores (blend, multiply, lighting) — nesse caso sim decodificar pra fazer a conta em espaço linear, mas **sempre com o reencode correspondente antes do `gl_FragColor` final**, nunca um dos dois lados sozinho.
+
+### Movimento idle
+
+Amplitude de rotação idle muito pequena (ex. 0.02–0.05 rad) faz o objeto 3D parecer estático — fácil de passar despercebido, especialmente ao lado de outras animações na página. Usar algo em torno de 0.03–0.09 rad pra rotação em Y/X (seno/cosseno com frequências levemente diferentes pra não parecer mecânico) e **considerar também um leve "bob" vertical** (`position.y = sin(t * 0.5) * 0.1`, escala pequena em unidades do mundo) — o movimento de posição chama mais atenção que só rotação e reforça a sensação de objeto "vivo"/flutuando, não uma imagem estática. Parallax pelo mouse continua **relativo ao container do próprio componente** (`getBoundingClientRect()`, não `window.innerWidth/Height`), clampado a ±1, multiplicado por um fator pequeno (~0.09) — rastrear a janela inteira produz inclinação forte sempre que o mouse está em qualquer lugar da página.
+
+### Enquadramento na câmera
+
+**Causa raiz de "aparece um retângulo preto ao redor do celular"** (já aconteceu, gastou várias rodadas até achar): a geometria do corpo era **maior que o frustum visível da câmera** naquele FOV/distância — ou seja, o objeto 3D ultrapassava os limites do que a câmera enquadra, cortando os cantos arredondados na borda do viewport. Sem cantos visíveis e sem margem nenhuma, o resultado parece "um retângulo preto sólido" em vez de "um celular flutuando com espaço ao redor" — em qualquer GPU/navegador, **não é bug de transparência**. Antes de mexer em `premultipliedAlpha`/`alpha`/`clearColor`, **primeiro conferir se a geometria cabe com folga no frustum**: altura visível a uma distância `d` com FOV vertical `f` é `2 * d * tan(f/2)`; escalar o corpo (`bodyGroup.scale.setScalar(...)`) pra ocupar ~90% dessa altura, nunca 100%+.
+
+Verificação rápida pra não repetir o erro: tirar um screenshot e conferir se dá pra ver claramente o fundo da página (gradiente) nos 4 cantos ao redor do celular — se não der, é enquadramento/escala, não transparência.
+
+### Boilerplate / manutenção
+
+`ResizeObserver` no container ajusta câmera/renderer. **Sempre limpar tudo no cleanup do `useEffect`**: cancelar o rAF, remover listeners, `dispose()` em geometrias/materiais/texturas/renderer (percorrer a árvore do modelo carregado via `traverse`, não só o material principal), e remover o `canvas` do DOM — sem isso, cada re-render em dev (React Strict Mode monta 2x) deixa contexto WebGL órfão.
+
+Use quando o pedido for explicitamente "3D" — a versão 2D (`PhoneSlideshow`, CSS+framer-motion) é mais leve e já cobre o caso "moldura de celular com slide" sem WebGL; só sobe pra Three.js quando o usuário pedir profundidade/rotação real.
+
+### Ferramenta: `read_console_messages` do Browser pane acumula histórico entre reloads
+
+Ao debugar erros de console nesse fluxo (Browser pane), reparei que `read_console_messages` mantém um histórico que **não é limpo por navegação/reload** dentro da mesma aba — um erro de uma versão antiga do código pode continuar aparecendo mesmo depois de corrigido e recarregado, te fazendo perder tempo caçando um bug que já não existe. Antes de confiar num erro "persistente", abrir uma aba nova (`tabs_create`) e navegar nela — se o erro não aparecer lá, era só histórico acumulado da aba antiga, não um bug real.
+
+## Moldura de celular com slideshow (hero, versão 2D/CSS)
+
+`<PhoneSlideshow screens={[{src, alt}, ...]}>` (`src/components/phone-slideshow.tsx`) — moldura de celular (bezel preto + notch, CSS puro) com as telas do produto passando em slide horizontal automático (framer-motion `AnimatePresence` + `x: 100% → 0% → -100%`, troca a cada ~2.2s — não usar fade puro, o pedido foi explicitamente slide). Usar no hero em vez de foto de mockup com mão/braço — fotos de estoque de "mão segurando celular" cortadas na borda do hero ficam com o braço truncado de forma estranha; a moldura ilustrada resolve isso e ainda mostra mais telas do produto de cara.
+
+## Esteira de telas (screen marquee)
+
+`<ScreenMarquee screens={[{src, alt}, ...]}>` (`src/components/screen-marquee.tsx`) — colunas de telas do produto rolando em looping contínuo (CSS puro, sem JS), inspirado em referências tipo Dribbble/Orix Pet Community. Distribui as imagens em 3 colunas (round-robin), retas (sem rotação — inclinar distorce visualmente as telas), largura generosa (`w-[220px] sm:w-[260px]`) pra manter o texto das telas legível. Colunas alternam direção (`marquee-up` / `marquee-down`, keyframes em `globals.css`) e duração, e uma máscara CSS (`mask-image` linear-gradient) esmaece o topo/rodapé do container. Respeita `prefers-reduced-motion` (desliga a animação).
+
+**Fonte das imagens**: exportar em resolução alta (`sharp .resize({width: 800}).webp({quality: 90})` — usar `quality={95}` no componente, já que `next.config.ts` só libera `[75, 95]` em `images.qualities`) — telas exportadas a 500px de largura ficam borradas/ilegíveis quando ampliadas na coluna.
+
+**Loop sem buracos (crítico)**: cada coluna duplica seu conteúdo (`[...unit, ...unit]`) e anima `translateY(-50%)` — pra fechar sem emenda, **uma cópia** do conteúdo da coluna precisa ser mais alta que o container (`h-[720px]`). Com poucas imagens por coluna (ex. round-robin de 11 imagens em mais colunas do que cabe), algumas colunas ficam curtas demais e aparece um buraco vazio por alguns segundos antes da próxima cópia entrar. Corrigido com `MIN_ITEMS_PER_COLUMN` — cada coluna repete (cicla, módulo) suas próprias imagens até ter pelo menos esse tanto de itens *antes* de duplicar para o loop. Ao reusar este componente, ajustar `MIN_ITEMS_PER_COLUMN` (e/ou `COLUMN_COUNT`) proporcionalmente à altura do container e ao tamanho dos cards — a regra é sempre: altura de uma cópia da coluna ≥ altura do container.
+
+Use para mostrar **as telas em destaque do produto** de forma viva, em vez de uma galeria estática — pede imagens todas com a mesma proporção (screenshots de app funcionam bem, ex. 375×812). Não chamar de "todas as telas" se for só uma seleção.
+
+## Componentes e classes reutilizáveis
+
+- `<Reveal delay={...}>` — fade+slide-up padrão, mesmo do site normal.
+- `<Counter value="93%">` — número que conta ao entrar no viewport.
+- `<StatRing value="93%" percent={93} label="..." color="#66fcf1">` — anel de progresso animado. **Sempre sobre fundo escuro**, nunca num card branco.
+- `<Bleed>` — quebra o container e ocupa `100vw`. **Sempre** manter `overflow-x-hidden` no wrapper da página (já está em `(site)/layout.tsx`) — sem isso o `Bleed` cria uma barra de scroll horizontal indesejada.
+- `.animated-gradient` (CSS em `globals.css`) — degradê `#7e20cf → #31cfb4 → #7e20cf`, `background-size: 200% 200%`, anima `background-position` em loop de 12s. Use com `bg-black/30` a `bg-black/50` por cima quando houver texto, pra garantir contraste.
+
+## Erros já cometidos (não repetir)
+
+- Envolver `StatRing` num `<div className="rounded-full bg-white p-2">` — quebra o layout do label. Não envolver em nada.
+- Texto do `StatRing` usando a classe `text-navy` — dentro de `.site-theme` esse token resolve pra quase-branco, então em cima de um fundo branco ficava ilegível. Regra geral: **nunca usar tokens de cor do tema dentro de um componente que pode aparecer sobre fundos variados** — usar cor explícita (`text-white`, hex direto) quando o fundo não é garantidamente `bg-bg`/`bg-surface`.
+- Foto de app "flutuando" tiltada no hero — visualmente não funcionou, foi removida.
+- Imagens de galeria cortadas com `object-cover` num container de aspect-ratio fixo quando a imagem original não bate com essa proporção (perde conteúdo importante, texto cortado). Preferir `object-contain` com altura generosa (`h-[70-75vh] max-h-[720-760px]`) quando não se sabe a proporção da imagem de antemão.
+
+## Style guide
+
+Depois de criar ou mudar um componente/padrão visual novo aqui, adicionar (ou atualizar) o exemplo correspondente em `/style-guide` (`src/app/(site)/style-guide/page.tsx`) — é a referência viva do design system, linkada a partir de toda página "uau".
+
+## Fontes de conteúdo pros outros cases
+
+Hoje (Sulamérica, eSIM Vivo, UOL Música Deezer) têm os campos ricos preenchidos; os outros cases ainda só têm o conteúdo original do template antigo. Pra preencher cada um, o usuário indicou fontes de material real (não inventar conteúdo/números):
+- **Backup do WordPress do site antigo** — um `.zip` inteiro do site (tema, plugins, uploads, banco). Pra achar imagens de um case específico, procurar por nome do case dentro do zip (`unzip -l`) — os uploads ficam em `wp-content/uploads/AAAA/MM/`, geralmente com várias variantes de tamanho do mesmo arquivo (`nome-1024x395.jpeg`, `nome-300x116.jpeg` etc.) — usar sempre a versão sem sufixo de tamanho (maior resolução). Pra achar coisas que **não aparecem mais no site ao vivo** (embeds removidos, links antigos), o backup inclui um dump `.sql` do banco (`mwp_db/*.sql`, pode ter dezenas de MB) — dá pra `grep` direto nele por domínio/palavra-chave (ex. `grep -io "https\?://[a-z0-9.-]*quant-ux[a-z0-9./_?=&%-]*"`) sem precisar restaurar o WordPress inteiro. Foi assim que achamos um protótipo Quant-UX do case do eSIM que não estava mais linkado na página pública.
+- `www.talespereira.com` (site anterior, ainda no ar) — dá pra extrair o texto real da página via `document.body.innerText` (mais confiável que o `get_page_text` do Browser pane, que às vezes pega um `<article>` errado da página) e os links de imagem/iframe/embed via `document.querySelectorAll('img'/'iframe'/'a[href]')`.
+- Arquivos Figma do usuário (`mcp__Figma__*` — Dev Mode MCP Server). **Exige plano pago do Figma** (Professional+) — no plano gratuito a ferramenta MCP nunca conecta, mesmo com "Enable Dev Mode MCP Server" ativado certinho. Nesse caso, um arquivo com link compartilhável ainda pode ser **visualizado** direto no navegador sem MCP e sem login (visualização read-only, zoom/pan funcionam, mas exportar/selecionar/apresentar pede conta) — dá pra usar como referência visual, mas não pra extrair screenshots em boa resolução (o canvas do Figma some/desfoca ao dar zoom via scroll do mouse; não é uma fonte confiável de imagem final).
+- **Protótipos feitos no v0.dev** (o usuário tem projetos próprios lá) — se o v0 tiver um deploy público (`https://<projeto>.vercel.app`), esse link funciona direto como `figma_url` (a função `embedPrototypeUrl` só aplica o tratamento `hide-ui=1` pra domínios `figma.com`; qualquer outro domínio entra sem alteração). Também dá pra **navegar o próprio app v0 e printar as telas reais** em vez de brigar com o zoom do Figma — desde que a tela shot alvo já tenha rota/estado alcançável por clique.
+
+**Telas coladas direto no chat não têm caminho de arquivo acessível** — pedir pro usuário salvar numa pasta (ex. `D:\downloads\<case>\`) e avisar o nome; aí dá pra ler e subir pro Supabase Storage normalmente.
+
+**Gotcha do Browser pane com apps interativos**: `computer` (click) pode dar timeout de 30s em SPAs pesadas (ex. o app v0 do UOL Música) mesmo quando o clique de fato registra — nesses casos, disparar o clique via `javascript_tool` (`element.click()`) direto no DOM é mais confiável que o `computer` tool. Iframes cross-origin embutidos numa página também podem renderizar em branco dentro do Browser pane (parece bug, mas é só uma limitação de iframe-dentro-de-iframe da ferramenta) — antes de assumir que está quebrado, conferir em `claude-in-chrome` (Chrome de verdade) navegando pra mesma URL local; se funcionar lá, o embed está correto e é só a ferramenta de preview que não dá conta.
+
+Cada case tem uma natureza diferente (app, service design, palestra) — não forçar todos a ter as mesmas seções preenchidas. Um case de palestra pode não ter `screens`/`figma_url` nunca, e tudo bem: ele vai renderizar hero clássico + conteúdo + slides, sem as seções de produto. **Antes de popular qualquer case, ler todo o material disponível primeiro e decidir o que é mais importante *daquele* case específico** — não aplicar a mesma receita da Sulamérica automaticamente. Um case de service design pode pedir mais peso na seção de processo/diagrama do que em telas; um case de app pede o hero com `Phone3D`; um case de palestra pode ser só hero + conteúdo + slides bem escritos. O objetivo é a melhor versão visualmente impactante *daquele* case, não uma cópia 1:1 da estrutura de outro.
+
+## Workflow
+
+Mesma regra do `tpointic-site`: nunca `deploy_to_vercel` sem preview local aprovado pelo usuário primeiro.

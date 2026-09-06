@@ -4,12 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "@mynaui/icons-react";
+import { Logo } from "@/components/logo";
 
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/sobre", label: "Sobre" },
   { href: "/servicos", label: "Serviços" },
   { href: "/cases", label: "Cases" },
+  { href: "/lideranca", label: "Liderança" },
   { href: "/treinamentos", label: "Treinamentos" },
   { href: "/contato", label: "Contato" },
 ];
@@ -22,9 +24,7 @@ export function Nav() {
     <header className="sticky top-0 z-50 border-b border-border bg-bg/80 backdrop-blur">
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-black text-navy">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-coral text-sm font-black text-black">
-            TP
-          </span>
+          <Logo className="h-8 w-8 text-coral" />
           TPointic
         </Link>
 
