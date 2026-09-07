@@ -34,8 +34,8 @@ export default function TreinamentosPage() {
             </h2>
             <p className="mt-2 text-sm text-slate">
               Masterclass ao vivo, online e colaborativa, com apoio de agentes
-              de IA. Pague quanto quiser (R$5 a R$500) — sem taxa de
-              cancelamento e com certificado digital.
+              de IA. Pague quanto quiser — sem taxa de cancelamento e com
+              certificado digital.
             </p>
             <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-coral">
               Ver curso

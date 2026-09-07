@@ -286,7 +286,7 @@ export default async function Home() {
                 Portfólio
               </p>
               <h2 className="mt-2 text-center text-3xl font-black text-navy">
-                Cases recentes
+                Cases em destaque
               </h2>
             </Reveal>
           </div>
@@ -307,10 +307,10 @@ export default async function Home() {
       )}
 
       {/* Liderança */}
-      <section className="border-t border-border px-6 py-20">
+      <section className="border-t border-border bg-surface px-6 py-20">
         <div className="mx-auto max-w-5xl">
           <Reveal>
-            <div className="grid gap-10 rounded-3xl border border-border bg-surface p-8 sm:p-12 lg:grid-cols-[1fr_auto] lg:items-center">
+            <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-sm font-bold uppercase tracking-widest text-coral">
                   Case de Liderança · Check Survey 2023
@@ -354,38 +354,36 @@ export default async function Home() {
       </section>
 
       {/* Masterclass CTA */}
-      <section className="mx-auto max-w-5xl px-6 py-20">
+      <section className="hero-gradient relative overflow-hidden px-6 py-20">
+        <div className="absolute inset-0 bg-black/40" />
         <Reveal>
-          <div className="hero-gradient relative overflow-hidden rounded-3xl px-8 py-14 sm:px-16">
-            <div className="absolute inset-0 bg-black/40" />
-            <div className="relative grid items-center gap-8 text-center lg:grid-cols-[1fr_auto] lg:text-left">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-white/80">
-                  Masterclass
-                </p>
-                <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
-                  Os 5 Fundamentos do Design Thinking
-                </h2>
-                <p className="mx-auto mt-4 max-w-xl text-white/85 lg:mx-0">
-                  Ao vivo, online e colaborativa, com apoio de agentes de IA.
-                  Pague quanto quiser — de R$5 a R$500.
-                </p>
-                <Link
-                  href="/treinamentos/design-thinking-5-fundamentos"
-                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
-                >
-                  Garantir minha vaga <ArrowUpRight size={18} />
-                </Link>
-              </div>
-              <div className="relative mx-auto hidden h-40 w-40 shrink-0 sm:block">
-                <Image
-                  src={MASTERCLASS_ILUSTRACAO}
-                  alt=""
-                  fill
-                  className="object-contain"
-                  sizes="160px"
-                />
-              </div>
+          <div className="relative mx-auto grid max-w-5xl items-center gap-8 text-center lg:grid-cols-[1fr_auto] lg:text-left">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/80">
+                Masterclass
+              </p>
+              <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
+                Os 5 Fundamentos do Design Thinking
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-white/85 lg:mx-0">
+                Ao vivo, online e colaborativa, com apoio de agentes de IA.
+                Pague quanto quiser.
+              </p>
+              <Link
+                href="/treinamentos/design-thinking-5-fundamentos"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+              >
+                Garantir minha vaga <ArrowUpRight size={18} />
+              </Link>
+            </div>
+            <div className="relative mx-auto hidden h-64 w-64 shrink-0 sm:block">
+              <Image
+                src={MASTERCLASS_ILUSTRACAO}
+                alt=""
+                fill
+                className="object-contain"
+                sizes="256px"
+              />
             </div>
           </div>
         </Reveal>

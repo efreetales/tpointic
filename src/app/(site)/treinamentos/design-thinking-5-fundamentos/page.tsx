@@ -68,7 +68,7 @@ export default async function CursoDesignThinkingPage() {
             </h1>
             <p className="mt-4 text-lg text-slate">
               Formato ao vivo, online e colaborativo, com apoio de agentes de IA.
-              Pague quanto quiser — de R$5 a R$500.
+              Pague quanto quiser.
             </p>
             <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-slate">
               <span className="flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1">
