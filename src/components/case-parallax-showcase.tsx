@@ -51,11 +51,9 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
             style={{ backgroundColor: PANEL_BG_BY_SLUG[c.slug] ?? PANEL_BG[i % PANEL_BG.length] }}
           >
             <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
-              {c.cliente && (
-                <p className="text-xs font-bold uppercase tracking-widest text-coral">
-                  {c.cliente}
-                </p>
-              )}
+              <p className="text-xs font-bold uppercase tracking-widest text-coral">
+                Case em destaque
+              </p>
               <h3 className="mt-3 max-w-lg text-3xl font-black leading-tight text-white sm:text-5xl">
                 {c.titulo}
               </h3>

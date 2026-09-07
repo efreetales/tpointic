@@ -280,29 +280,23 @@ export default async function Home() {
       {/* Cases */}
       {cases.length > 0 && (
         <section className="relative border-t border-border">
-          <div className="mx-auto max-w-5xl px-6 pt-20">
+          <CaseParallaxShowcase cases={cases} />
+
+          <Link
+            href="/cases"
+            className="group animated-gradient relative flex items-center justify-center overflow-hidden px-6 py-24 text-center"
+          >
+            <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
             <Reveal>
-              <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
-                Portfólio
-              </p>
-              <h2 className="mt-2 text-center text-3xl font-black text-navy">
-                Cases em destaque
-              </h2>
+              <span className="relative inline-flex items-center gap-3 text-3xl font-black text-white sm:text-5xl">
+                Ver portfólio completo
+                <ArrowUpRight
+                  size={40}
+                  className="transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+                />
+              </span>
             </Reveal>
-          </div>
-
-          <div className="mt-14">
-            <CaseParallaxShowcase cases={cases} />
-          </div>
-
-          <div className="mx-auto max-w-5xl px-6 py-14 text-center">
-            <Link
-              href="/cases"
-              className="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-bold text-navy transition-colors hover:border-coral hover:text-coral"
-            >
-              Ver portfólio completo <ArrowUpRight size={16} />
-            </Link>
-          </div>
+          </Link>
         </section>
       )}
 
@@ -397,7 +391,7 @@ export default async function Home() {
               Depoimentos
             </p>
             <h2 className="mt-2 text-center text-3xl font-black text-navy">
-              O que dizem sobre o trabalho
+              O que dizem sobre o meu trabalho
             </h2>
           </Reveal>
 
