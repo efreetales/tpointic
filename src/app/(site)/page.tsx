@@ -7,13 +7,16 @@ import {
   ShieldCheck,
   ArrowUpRight,
   Sparkles,
-  Star,
 } from "@mynaui/icons-react";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
 import { LogoMarquee } from "@/components/logo-marquee";
 import { CaseParallaxShowcase } from "@/components/case-parallax-showcase";
+import { TestimonialsCarousel, type Testimonial } from "@/components/testimonials-carousel";
+
+const MASTERCLASS_ILUSTRACAO =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
 
 const SERVICOS = [
   {
@@ -38,16 +41,107 @@ const SERVICOS = [
   },
 ];
 
-const TESTIMONIALS = [
-  {
-    name: "Milene Ferraz",
-    role: "Design Lead @ CI&T",
-    quote: "Trabalhamos juntos em um projeto muito elogiado por todos. Manda bem demais!",
-  },
+const STORAGE_DEPOIMENTOS =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/depoimentos";
+
+// Depoimentos vindos do talespereira.com e das recomendações recebidas no
+// LinkedIn (linkedin.com/in/talespereira/details/recommendations). Alguns
+// ainda não têm link de perfil confirmado — entram assim mesmo e o link é
+// completado depois (nunca inventar uma URL de perfil).
+const TESTIMONIALS: Testimonial[] = [
   {
     name: "Pablo Turazzi Vilanova",
-    role: "UX Research Lead @ Mercado Livre",
-    quote: "Propositivo, inteligente, bem-humorado, sociável. Uma vivência espetacular.",
+    role: "UX Research Technical Leader @ Mercado Livre",
+    quote:
+      "Trabalhar com o Tales foi uma vivência espetacular. Ele dispõe de amplo conhecimento de metodologias de pesquisa e boas práticas de design e é alguém com quem qualquer pessoa pode contar no dia-a-dia – propositivo, inteligente, bem-humorado, sociável e generoso. Adoraria trabalhar com ele novamente.",
+    photo: `${STORAGE_DEPOIMENTOS}/pablo.jpeg`,
+    linkedin: "https://www.linkedin.com/in/pabloturazzi/",
+  },
+  {
+    name: "Milene Ferraz",
+    role: "UX Design Lead at Mercado Livre / Mercado Pago LATAM",
+    quote:
+      "Fui dupla do Tales na CI&T em dois clientes (Vivo e Cofco). Ele liderando iniciativas de UX e eu de UI. Foi um período muito rico de trocas, parceria, colaboração e diversão. Sempre se destacou em puxar o negócio para valorizar o design centrado nas pessoas usuárias, através de dinâmicas colaborativas entre diversas áreas.",
+    photo: `${STORAGE_DEPOIMENTOS}/milene.jpeg`,
+    linkedin: "https://www.linkedin.com/in/milene-ferraz-62788216/",
+  },
+  {
+    name: "Luciana Terceiro",
+    role: "Sr. Product Designer & Service Designer",
+    quote:
+      "I have the pleasure to work with Tales during 2 years at UOL and I can tell he is a great partner, with a critical and accurate vision about the projects he was involved. He always had the initiative to conduct user researches and had lead the dev team to participate in co-creation sessions to improve the user experience.",
+    photo: `${STORAGE_DEPOIMENTOS}/luciana.jpeg`,
+    linkedin: "https://www.linkedin.com/in/luterceiro/",
+  },
+  {
+    name: "Gabriel Gonzaga",
+    role: "Líder de UX @ Mercado Livre | Experiência do Usuário",
+    quote:
+      "Trabalhei com o Tales em duas oportunidades e situações diferentes e, em ambas, ficou claro a sua paixão pela disciplina de UX e determinação em gerar um ambiente saudável de trabalho e também sua capacidade de entregar experiências, como analista e como líder, que colocam as necessidades dos usuários no centro da discussão.",
+    photo: `${STORAGE_DEPOIMENTOS}/gabriel.jpeg`,
+    linkedin: "https://www.linkedin.com/in/gabrielmgonzaga/",
+  },
+  {
+    name: "Romeu Ivolela Neto",
+    role: "AI Product Manager | MSc in Philosophy & AI",
+    quote:
+      "Eu tive o prazer de trabalhar com o Tales no Shopping UOL. Sua sensibilidade e empatia com os usuários, somados ao seu profundo conhecimento na área de UX, o tornam um profissional excelente. Se todos os produtos tivessem um profissional como o Tales, com certeza teríamos produtos melhores no mercado.",
+    photo: `${STORAGE_DEPOIMENTOS}/romeu.jpeg`,
+    linkedin: "https://www.linkedin.com/in/rivolela/",
+  },
+  {
+    name: "Camilo Luna",
+    role: "Ux project lead at Mercado Libre",
+    quote:
+      "Tales es una persona increíble, tanto en lo personal como en lo profesional. Tuve la suerte de trabajar con él durante más de un año, con él como mi líder. Su conocimiento en procesos y estrategia de UX, junto con su habilidad para liderar equipos, realmente destacan.",
+    photo: `${STORAGE_DEPOIMENTOS}/camilo-luna.jpeg`,
+    linkedin: "https://www.linkedin.com/in/camilo-luna-97738720/",
+  },
+  {
+    name: "Mariana De Sena Lima",
+    role: "Group Product Manager @ Mercado Livre (NASDAQ: MELI)",
+    quote:
+      "Tales sempre foi muito colaborativo e focado no cuidado com o time e na performance, especialmente no aspecto de gestão. Além disso, sempre trouxe provocações importantes sobre a experiência do usuário.",
+    photo: `${STORAGE_DEPOIMENTOS}/mariana.jpeg`,
+    linkedin: "https://www.linkedin.com/in/mariana-de-sena-lima-1aa97434/",
+  },
+  {
+    name: "Leonardo Sathler",
+    role: "Innovation and Experience Specialist",
+    quote:
+      "Excelente experiência no treinamento de Fundamentos do Design Thinking ministrado pelo Tales Pereira na TP Treinamentos! O Tales se destaca pela didática impecável e pela forma prática como conduz o aprendizado. O treinamento trouxe conceitos essenciais e metodologias que agregaram imensamente à minha carreira.",
+    photo: `${STORAGE_DEPOIMENTOS}/leonardo.jpeg`,
+    linkedin: "https://www.linkedin.com/in/sathler/",
+  },
+  {
+    name: "Eder Martins",
+    role: "Produto Digital & Estratégia de Experiência",
+    quote:
+      "Já tive a oportunidade de trabalhar com o Tales mais de uma vez, ele me ajudou como parceiro, líder e colega de trabalho. Ensinou coisas desde antes da minha profissão existir e me ajudou a trilhar este caminho. Considero uma parte do meu sucesso ao olhar clínico e crítico dele.",
+    photo: `${STORAGE_DEPOIMENTOS}/eder.jpeg`,
+    linkedin: "https://www.linkedin.com/in/eder-martins-36a95126/",
+  },
+  {
+    name: "Laura Molina Castilla",
+    role: "UI/UX Sr. Designer en Mercado Libre",
+    quote:
+      "Tales es una gran profesional que se destaca por su agilidad en resolver desafíos y apoyar a sus equipos de trabajo, generando ambientes comprometidos y proactivos. Siempre dispuesto a aportar conocimiento y a gestionar proyectos complejos, logrando excelentes resultados.",
+    photo: `${STORAGE_DEPOIMENTOS}/laura-molina.jpeg`,
+    linkedin: "https://www.linkedin.com/in/laumolcas/",
+  },
+  {
+    name: "Felipe Rodrigues",
+    role: "Director of Engineering @ LEGO Group",
+    quote:
+      "I had the opportunity to work with Tales in some projects, and as a team we did a great job. He is a talented designer, and for me, was a pleasure to work with him.",
+    photo: `${STORAGE_DEPOIMENTOS}/felipe.jpeg`,
+  },
+  {
+    name: "Vladimir Rodrigues de Lima",
+    role: "Scrum Master | Agile Coach | PSM I",
+    quote:
+      "Fiz o curso de Fundamentos do Design Thinking ministrado pelo Tales Pereira e foi uma ótima experiência. Muito conhecimento, casos práticos e uma excelente didática. O tempo passou voando. Certamente seguirei fazendo mais cursos com ele!",
+    photo: `${STORAGE_DEPOIMENTOS}/vladimir.jpeg`,
   },
 ];
 
@@ -262,25 +356,36 @@ export default async function Home() {
       {/* Masterclass CTA */}
       <section className="mx-auto max-w-5xl px-6 py-20">
         <Reveal>
-          <div className="hero-gradient relative overflow-hidden rounded-3xl px-8 py-14 text-center sm:px-16">
+          <div className="hero-gradient relative overflow-hidden rounded-3xl px-8 py-14 sm:px-16">
             <div className="absolute inset-0 bg-black/40" />
-            <div className="relative">
-              <p className="text-xs font-bold uppercase tracking-widest text-white/80">
-                Masterclass
-              </p>
-              <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
-                Os 5 Fundamentos do Design Thinking
-              </h2>
-              <p className="mx-auto mt-4 max-w-xl text-white/85">
-                Ao vivo, online e colaborativa, com apoio de agentes de IA.
-                Pague quanto quiser — de R$5 a R$500.
-              </p>
-              <Link
-                href="/treinamentos/design-thinking-5-fundamentos"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
-              >
-                Garantir minha vaga <ArrowUpRight size={18} />
-              </Link>
+            <div className="relative grid items-center gap-8 text-center lg:grid-cols-[1fr_auto] lg:text-left">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-white/80">
+                  Masterclass
+                </p>
+                <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
+                  Os 5 Fundamentos do Design Thinking
+                </h2>
+                <p className="mx-auto mt-4 max-w-xl text-white/85 lg:mx-0">
+                  Ao vivo, online e colaborativa, com apoio de agentes de IA.
+                  Pague quanto quiser — de R$5 a R$500.
+                </p>
+                <Link
+                  href="/treinamentos/design-thinking-5-fundamentos"
+                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                >
+                  Garantir minha vaga <ArrowUpRight size={18} />
+                </Link>
+              </div>
+              <div className="relative mx-auto hidden h-40 w-40 shrink-0 sm:block">
+                <Image
+                  src={MASTERCLASS_ILUSTRACAO}
+                  alt=""
+                  fill
+                  className="object-contain"
+                  sizes="160px"
+                />
+              </div>
             </div>
           </div>
         </Reveal>
@@ -298,24 +403,11 @@ export default async function Home() {
             </h2>
           </Reveal>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2">
-            {TESTIMONIALS.map((t, i) => (
-              <Reveal key={t.name} delay={i * 0.1}>
-                <blockquote className="h-full rounded-2xl border border-border bg-surface p-6">
-                  <div className="flex gap-1 text-coral">
-                    {Array.from({ length: 5 }).map((_, idx) => (
-                      <Star key={idx} size={14} className="fill-coral" />
-                    ))}
-                  </div>
-                  <p className="mt-3 text-slate">&ldquo;{t.quote}&rdquo;</p>
-                  <footer className="mt-4 text-sm font-bold text-navy">
-                    {t.name}
-                    <span className="block font-normal text-gray">{t.role}</span>
-                  </footer>
-                </blockquote>
-              </Reveal>
-            ))}
-          </div>
+          <Reveal delay={0.1}>
+            <div className="mt-10">
+              <TestimonialsCarousel items={TESTIMONIALS} />
+            </div>
+          </Reveal>
 
           <Reveal delay={0.2}>
             <div className="mt-8 flex justify-center">

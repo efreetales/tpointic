@@ -80,6 +80,25 @@ export function CaseFormFields({ c }: { c?: Case }) {
           className="mt-1 w-full rounded-lg border border-border bg-white px-4 py-2 text-navy outline-none focus:border-coral"
         />
       </div>
+      <div>
+        <label htmlFor="capa_focal" className="block text-sm font-bold text-navy">
+          Ponto focal da capa
+        </label>
+        <input
+          id="capa_focal"
+          name="capa_focal"
+          type="text"
+          placeholder='Ex: "center", "top", "50% 20%" — vazio = centralizado'
+          defaultValue={c?.capa_focal ?? ""}
+          className="mt-1 w-full rounded-lg border border-border bg-white px-4 py-2 text-navy outline-none focus:border-coral"
+        />
+        <p className="mt-1 text-xs text-slate">
+          A imagem de capa é sempre cortada pra preencher o espaço (no painel
+          da home e no hero do case). Use isso pra ajustar qual parte da
+          imagem fica visível quando o corte automático (centralizado) não
+          ficar bom — mesmo formato do CSS <code>object-position</code>.
+        </p>
+      </div>
     </>
   );
 }

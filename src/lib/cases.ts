@@ -25,6 +25,7 @@ export type Case = {
   resumo: string | null;
   conteudo: string | null;
   capa_url: string | null;
+  capa_focal: string | null;
   publicado_em: string;
   imagens: string[];
   video_url: string | null;

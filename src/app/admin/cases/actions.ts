@@ -14,6 +14,7 @@ export async function criarCase(formData: FormData) {
     resumo: String(formData.get("resumo") ?? "") || null,
     conteudo: String(formData.get("conteudo") ?? "") || null,
     capa_url: String(formData.get("capa_url") ?? "") || null,
+    capa_focal: String(formData.get("capa_focal") ?? "") || null,
   });
 
   if (error) throw new Error(error.message);
@@ -35,6 +36,7 @@ export async function atualizarCase(caseId: string, formData: FormData) {
       resumo: String(formData.get("resumo") ?? "") || null,
       conteudo: String(formData.get("conteudo") ?? "") || null,
       capa_url: String(formData.get("capa_url") ?? "") || null,
+    capa_focal: String(formData.get("capa_focal") ?? "") || null,
     })
     .eq("id", caseId);
 

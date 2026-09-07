@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { getCursoBySlug, getTurmaAberta } from "@/lib/turmas";
@@ -11,6 +12,9 @@ import {
   Sparkles,
   Rocket,
 } from "@mynaui/icons-react";
+
+const MASTERCLASS_ILUSTRACAO =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
 
 export const metadata: Metadata = {
   title: "Os 5 Fundamentos do Design Thinking — TPointic",
@@ -54,7 +58,7 @@ export default async function CursoDesignThinkingPage() {
     <main className="flex-1">
       <section className="relative overflow-hidden">
         <div className="hero-gradient absolute inset-0 opacity-20" />
-        <div className="relative mx-auto flex max-w-3xl flex-col items-start px-6 py-16 text-left">
+        <div className="relative mx-auto grid max-w-5xl items-center gap-8 px-6 py-16 lg:grid-cols-[1.1fr_0.9fr]">
           <Reveal>
             <p className="text-sm font-bold uppercase tracking-widest text-coral">
               Masterclass
@@ -91,6 +95,19 @@ export default async function CursoDesignThinkingPage() {
                 className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
             </Link>
+          </Reveal>
+
+          <Reveal delay={0.15}>
+            <div className="relative mx-auto aspect-square w-full max-w-sm">
+              <Image
+                src={MASTERCLASS_ILUSTRACAO}
+                alt="Ilustração de uma pessoa resolvendo um problema complexo"
+                fill
+                className="object-contain"
+                priority
+                sizes="(min-width: 1024px) 384px, 60vw"
+              />
+            </div>
           </Reveal>
         </div>
       </section>

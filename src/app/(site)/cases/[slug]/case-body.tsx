@@ -226,7 +226,15 @@ export function CaseBody({ c }: { c: Case }) {
                 transition={{ duration: 0.9, delay: 0.2 }}
                 className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 shadow-2xl"
               >
-                <Image src={c.capa_url} alt="" fill className="object-cover" priority sizes="(min-width: 1024px) 480px, 100vw" />
+                <Image
+                  src={c.capa_url}
+                  alt=""
+                  fill
+                  className="object-cover"
+                  style={{ objectPosition: c.capa_focal ?? "center" }}
+                  priority
+                  sizes="(min-width: 1024px) 480px, 100vw"
+                />
               </motion.div>
             )
           )}

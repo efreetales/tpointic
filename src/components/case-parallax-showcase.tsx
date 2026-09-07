@@ -52,6 +52,7 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
                   alt={c.titulo}
                   fill
                   className="object-cover"
+                  style={{ objectPosition: c.capa_focal ?? "center" }}
                   sizes="(min-width: 1024px) 62vw, 100vw"
                 />
               )}
