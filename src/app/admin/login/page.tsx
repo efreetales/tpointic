@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
       </p>
       <h1 className="mt-2 text-3xl font-black text-navy">Entrar</h1>
       <p className="mt-2 text-sm text-slate">
-        Digite seu e-mail para receber um link de acesso.
+        Entre com sua senha ou receba um link de acesso por e-mail.
       </p>
       <div className="mt-8">
         <LoginForm />

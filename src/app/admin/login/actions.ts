@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginState = {
@@ -43,4 +44,25 @@ export async function enviarMagicLink(
     status: "ok",
     message: "Link de acesso enviado! Confira seu e-mail.",
   };
+}
+
+export async function entrarComSenha(
+  _prevState: LoginState,
+  formData: FormData,
+): Promise<LoginState> {
+  const email = String(formData.get("email") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+
+  if (!email || !password) {
+    return { status: "erro", message: "Informe e-mail e senha." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    return { status: "erro", message: "E-mail ou senha incorretos." };
+  }
+
+  redirect("/admin");
 }
