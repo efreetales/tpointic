@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getCursoBySlug, getTurmaAberta } from "@/lib/turmas";
 import { Reveal } from "@/components/reveal";
+import { MatriculaDrawer } from "@/components/matricula-drawer";
 import {
   ArrowUpRight,
   CheckCircle,
@@ -11,10 +12,34 @@ import {
   Users,
   Sparkles,
   Rocket,
+  Star,
 } from "@mynaui/icons-react";
 
 const MASTERCLASS_ILUSTRACAO =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
+
+const STORAGE_DEPOIMENTOS =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/depoimentos";
+
+// Depoimentos de quem já fez a masterclass (distintos dos depoimentos
+// gerais de trabalho na home) — vindos das recomendações do LinkedIn.
+const DEPOIMENTOS_ALUNOS = [
+  {
+    name: "Vladimir Rodrigues de Lima",
+    role: "Scrum Master | Agile Coach | PSM I",
+    quote:
+      "Fiz o curso de Fundamentos do Design Thinking ministrado pelo Tales Pereira e foi uma ótima experiência. Muito conhecimento, casos práticos e uma excelente didática. O tempo passou voando. Certamente seguirei fazendo mais cursos com ele!",
+    photo: `${STORAGE_DEPOIMENTOS}/vladimir.jpeg`,
+  },
+  {
+    name: "Leonardo Sathler",
+    role: "Innovation and Experience Specialist",
+    quote:
+      "Excelente experiência no treinamento de Fundamentos do Design Thinking ministrado pelo Tales Pereira na TP Treinamentos! O Tales se destaca pela didática impecável e pela forma prática como conduz o aprendizado. O treinamento trouxe conceitos essenciais e metodologias que agregaram imensamente à minha carreira.",
+    photo: `${STORAGE_DEPOIMENTOS}/leonardo.jpeg`,
+    linkedin: "https://www.linkedin.com/in/sathler/",
+  },
+];
 
 export const metadata: Metadata = {
   title: "Os 5 Fundamentos do Design Thinking — TPointic",
@@ -81,12 +106,8 @@ export default async function CursoDesignThinkingPage() {
               </span>
             </div>
 
-            <Link
-              href={
-                turma
-                  ? "/treinamentos/design-thinking-5-fundamentos/matricula"
-                  : "#matricula"
-              }
+            <MatriculaDrawer
+              turma={turma}
               className="group mt-8 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
             >
               {turma ? "Garantir minha vaga" : "Ver próxima turma"}
@@ -94,7 +115,7 @@ export default async function CursoDesignThinkingPage() {
                 size={18}
                 className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               />
-            </Link>
+            </MatriculaDrawer>
           </Reveal>
 
           <Reveal delay={0.15}>
@@ -154,37 +175,66 @@ export default async function CursoDesignThinkingPage() {
         </Reveal>
       </section>
 
+      <section className="border-t border-border bg-surface/30 px-6 py-16">
+        <div className="mx-auto max-w-3xl">
+          <Reveal>
+            <h2 className="text-2xl font-black text-navy">
+              Quem já fez, recomenda
+            </h2>
+          </Reveal>
+          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+            {DEPOIMENTOS_ALUNOS.map((d, i) => (
+              <Reveal key={d.name} delay={i * 0.1}>
+                <div className="flex h-full flex-col rounded-2xl border border-border bg-surface p-6">
+                  <div className="flex gap-1 text-coral">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <Star key={idx} size={14} className="fill-coral" />
+                    ))}
+                  </div>
+                  <p className="mt-3 flex-1 text-sm text-slate">
+                    &ldquo;{d.quote}&rdquo;
+                  </p>
+                  <div className="mt-5 flex items-center gap-3">
+                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
+                      <Image
+                        src={d.photo}
+                        alt={d.name}
+                        fill
+                        className="object-cover"
+                        sizes="44px"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-navy">
+                        {d.name}
+                      </p>
+                      <p className="truncate text-xs text-gray">{d.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section
         id="matricula"
         className="border-t border-border bg-surface/30 px-6 py-16 text-center"
       >
         <Reveal>
-          {turma ? (
-            <>
-              <p className="text-sm font-bold text-slate">
-                Próxima turma: {turma.nome}
-              </p>
-              <Link
-                href="/treinamentos/design-thinking-5-fundamentos/matricula"
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
-              >
-                Garantir minha vaga <ArrowUpRight size={18} />
-              </Link>
-            </>
-          ) : (
-            <>
-              <p className="font-bold text-navy">Aguardando nova turma</p>
-              <p className="mt-2 text-sm text-slate">
-                As matrículas ainda não abriram para a próxima turma.
-              </p>
-              <Link
-                href="/contato"
-                className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
-              >
-                Avise-me quando abrir <ArrowUpRight size={18} />
-              </Link>
-            </>
+          {turma && (
+            <p className="text-sm font-bold text-slate">
+              Próxima turma: {turma.nome}
+            </p>
           )}
+          <MatriculaDrawer
+            turma={turma}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+          >
+            {turma ? "Garantir minha vaga" : "Ver próxima turma"}
+            <ArrowUpRight size={18} />
+          </MatriculaDrawer>
         </Reveal>
       </section>
     </main>
