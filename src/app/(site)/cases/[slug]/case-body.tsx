@@ -32,6 +32,7 @@ import { NpsGauge } from "@/components/nps-gauge";
 import { PieChart } from "@/components/pie-chart";
 import { GalleryStepCounter } from "@/components/gallery-step-counter";
 import { ConnectorLine } from "@/components/connector-line";
+import { MascotMaskedVideo } from "@/components/mascot-masked-video";
 import { ScreenMarquee } from "@/components/screen-marquee";
 import { DesktopScreenShowcase } from "@/components/desktop-screen-showcase";
 import { Phone3D } from "@/components/phone-3d";
@@ -421,16 +422,46 @@ export function CaseBody({ c }: { c: Case }) {
         </motion.div>
       </section>
 
-      {/* O problema — com `problema_bg_url` (ex. eSIM Vivo), vira duas
-          colunas: frase à esquerda, imagem cobrindo a altura toda do bloco,
-          alinhada à direita (posicionamento absoluto — a imagem não segue o
-          fluxo/grid, só "gruda" nas 4 bordas verticais da seção via
-          `inset-y-0 right-0`, então acompanha a altura real do bloco mesmo
-          com texto de tamanho variável) sobre `problema_bg_color`; sem
-          `problema_bg_url`, cai pro layout centrado de sempre sobre um tom
+      {/* O problema — três variantes. Com `problema_video_url` (ex. eSIM
+          Vivo): vídeo recortado na forma do mascote Vivo/Claro
+          (`MascotMaskedVideo`) à esquerda, texto à direita, em fluxo normal
+          (não absolute/full-height) — o vídeo é um elemento compacto (uma
+          silhueta, não um retângulo full-bleed), então não precisa "roubar"
+          quase metade da largura do texto do jeito que a variante de imagem
+          fazia. **Erro já cometido**: a variante original de imagem
+          (`problema_bg_url`) usava posicionamento absoluto cobrindo toda a
+          altura do bloco + `lg:pr-[48%]` no texto — pensada pra uma FOTO
+          retangular grande, ficava com o texto espremido numa coluna
+          estreita quando a frase era mais longa (ex. eSIM Vivo em telas de
+          notebook). A variante de vídeo evita isso de propósito, com layout
+          flex simples e o vídeo com largura própria limitada, não
+          "roubando" espaço do texto. Sem `problema_video_url`, cai pra
+          variante de imagem (`problema_bg_url`, mesma lógica de sempre);
+          sem nenhum dos dois, cai pro layout centrado padrão sobre um tom
           da paleta de fundo rotativa. */}
       {c.problema_texto &&
-        (c.problema_bg_url ? (
+        (c.problema_video_url ? (
+          <section
+            className="relative overflow-hidden px-6 py-32"
+            style={{ backgroundColor: c.problema_bg_color ?? "#f6f6f6" }}
+          >
+            <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-center lg:gap-16">
+              <Reveal>
+                <MascotMaskedVideo videoUrl={c.problema_video_url} className="w-full max-w-[280px] sm:max-w-[340px]" />
+              </Reveal>
+              <Reveal delay={0.1}>
+                <div>
+                  <SectionEyebrow light justify="justify-center lg:justify-start">
+                    O desafio
+                  </SectionEyebrow>
+                  <p className="mt-5 max-w-lg text-center text-2xl font-black leading-tight text-[#1a1a1a] sm:text-4xl lg:text-left">
+                    {highlightProblemText(c.problema_texto, "text-[#7e20cf]")}
+                  </p>
+                </div>
+              </Reveal>
+            </div>
+          </section>
+        ) : c.problema_bg_url ? (
           <section
             className="relative overflow-hidden px-6 py-32"
             style={{ backgroundColor: c.problema_bg_color ?? "#f6f6f6" }}
@@ -520,181 +551,14 @@ export function CaseBody({ c }: { c: Case }) {
         </section>
       )}
 
-      {/* Conteúdo — narrativa longa (objetivo, processo, papel), separada da
-          frase de impacto curta da seção "O problema" acima. Com
-          `conteudo_video_url` preenchido, vira duas colunas: texto alinhado
-          à esquerda + vídeo à direita (ex. UOL Deezer: um vídeo-resumo das
-          entrevistas/testes de usabilidade ao lado do texto que descreve
-          esse mesmo processo) — sem o campo, cai no layout centrado padrão
-          de sempre. Distinto da seção "Vídeo" mais abaixo (`video_url`,
-          própria seção "Eu explico esse case") — esse vídeo aqui ilustra o
-          CONTEÚDO ao lado dele, não é um vídeo do case como um todo. */}
-      {c.conteudo && (
-        <Reveal>
-          {c.conteudo_video_url ? (
-            <div ref={conteudoGridRef} className="relative mx-auto grid max-w-6xl items-start gap-12 px-6 py-20 lg:grid-cols-2">
-              <div>{renderConteudo(c.conteudo, conteudoVideoAnchorRef)}</div>
-              {/* `lg:sticky` — o vídeo fica parado na tela enquanto o texto
-                  (normalmente bem mais alto) rola ao lado, efeito parallax
-                  leve. Só em telas grandes (`lg:`): no mobile as colunas
-                  empilham, e sticky não faz sentido pra uma coluna que já
-                  não compartilha espaço de rolagem com a outra. */}
-              <div className="lg:sticky lg:top-24">
-                {c.conteudo_video_titulo && (
-                  <h3 className="mb-4 text-xl font-black text-navy">{c.conteudo_video_titulo}</h3>
-                )}
-                <div ref={conteudoVideoBoxRef} className="overflow-hidden rounded-2xl border border-border shadow-2xl">
-                  {c.conteudo_video_url.endsWith(".mp4") ? (
-                    <video src={c.conteudo_video_url} controls className="w-full" preload="metadata" />
-                  ) : (
-                    <div className="relative aspect-video">
-                      <iframe
-                        src={embedVideoUrl(c.conteudo_video_url)}
-                        className="absolute inset-0 h-full w-full"
-                        allow="autoplay; fullscreen; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <ConnectorLine
-                containerRef={conteudoGridRef}
-                fromRef={conteudoVideoAnchorRef}
-                toRef={conteudoVideoBoxRef}
-              />
-            </div>
-          ) : (
-            <div className="mx-auto max-w-2xl px-6 py-20">{renderConteudo(c.conteudo)}</div>
-          )}
-        </Reveal>
-      )}
-
-      {/* Protótipo — largura total, sem moldura, sem rodapé de ferramenta.
-          Fundo fixo em `prototipo_bg_color` (não entra na rotação de
-          `nextBg()`) — deve ser a MESMA cor de fundo do próprio protótipo
-          embutido (preto puro pro canvas do Figma, branco pra um protótipo
-          com UI branca, ex. eSIM Vivo), pra fundir com o embed em vez de
-          criar uma borda visível entre "moldura do site" e "conteúdo do
-          protótipo". Sem `prototipo_bg_color` definido, cai pro preto (era
-          o único caso até agora — Figma). */}
-      {c.figma_url && (
-        <section className="relative px-6 py-16" style={{ backgroundColor: prototypeBg }}>
-          <Reveal>
-            <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
-            <h2
-              className={`mx-auto mt-3 max-w-xl text-center text-4xl font-black sm:text-5xl ${
-                prototypeIsLight ? "text-[#1a1a1a]" : "text-navy"
-              }`}
-            >
-              Explore o fluxo completo
-            </h2>
-          </Reveal>
-          <Reveal delay={0.15}>
-            <Bleed className="mt-10">
-              <iframe
-                src={embedPrototypeUrl(c.figma_url)}
-                className="h-[1500px] w-full"
-                allow="fullscreen"
-                allowFullScreen
-              />
-            </Bleed>
-          </Reveal>
-        </section>
-      )}
-
-      {/* Abrir no Figma/protótipo — faixa full-bleed clicável, mesmo padrão
-          da faixa de PDF/"Ver portfólio completo" (não mais uma pílula
-          pequena isolada dentro da seção do protótipo). */}
-      {c.figma_url && (
-        <a
-          href={c.figma_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group relative flex items-center justify-center overflow-hidden px-6 py-14 text-center"
-        >
-          <div className="animated-gradient absolute inset-0" />
-          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
-          <Reveal>
-            <span className="relative inline-flex items-center gap-3 text-xl font-black text-white sm:text-2xl">
-              {isFigmaUrl(c.figma_url) ? <Figma size={22} className="shrink-0" /> : null}
-              {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
-              <ArrowUpRight
-                size={24}
-                className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
-              />
-            </span>
-          </Reveal>
-        </a>
-      )}
-
-      {/* Telas em destaque — esteira contínua */}
-      {screens.length > 0 && (
-        <section className="relative overflow-hidden py-32" style={{ backgroundColor: nextBg() }}>
-          <Reveal>
-            <SectionEyebrow className="px-6">O produto</SectionEyebrow>
-            <h2 className="mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black text-navy sm:text-5xl">
-              Telas em destaque
-            </h2>
-          </Reveal>
-          <div className="mt-14">
-            {c.hero_device === "laptop" ? (
-              <DesktopScreenShowcase screens={screens} />
-            ) : (
-              <ScreenMarquee screens={screens} />
-            )}
-          </div>
-        </section>
-      )}
-
-      {/* Style guide */}
-      {hasStyleGuide && (
-        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
-          <Reveal>
-            <SectionEyebrow>Style guide</SectionEyebrow>
-            <h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black text-navy sm:text-5xl">
-              A linguagem visual
-            </h2>
-          </Reveal>
-
-          <div className="mx-auto mt-16 max-w-4xl">
-            {(c.style_guide.colors?.length ?? 0) > 0 && (
-              <Reveal delay={0.1}>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {c.style_guide.colors!.map((color) => (
-                    <div key={color.hex} className="overflow-hidden rounded-2xl border border-border bg-bg">
-                      <div className="h-20" style={{ backgroundColor: color.hex }} />
-                      <div className="p-3">
-                        <p className="text-sm font-bold text-navy">{color.name}</p>
-                        <p className="mt-0.5 font-mono text-xs text-gray">{color.hex}</p>
-                        <p className="mt-1 text-xs text-slate">{color.role}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Reveal>
-            )}
-
-            {(c.style_guide.patterns?.length ?? 0) > 0 && (
-              <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                {c.style_guide.patterns!.map((p, i) => (
-                  <Reveal key={p.title} delay={i * 0.06}>
-                    <div className="rounded-2xl border border-border bg-bg p-5">
-                      <h3 className="font-bold text-navy">{p.title}</h3>
-                      <p className="mt-1.5 text-sm text-slate">{p.desc}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* Galeria de impacto — pilha com parallax (cada bloco cobre o anterior
           ao rolar). Sem overflow-hidden na seção: os blocos filhos usam
           `position: sticky`, e overflow non-visible em qualquer ancestral
-          quebra o efeito (documentado na skill tpointic-wow-case). */}
+          quebra o efeito (documentado na skill tpointic-wow-case). Fica
+          logo depois de Etapas de propósito — é "olhar de perto" o processo
+          que acabou de ser resumido (ex. eSIM Vivo: escopo/roadmap de cada
+          fase; Sulamérica: os passos do teste), então pertence junto da
+          explicação do processo, não lá no fim perto dos resultados. */}
       {c.gallery.length > 0 ? (
         // IIFE (not a hoisted `const` before the JSX) on purpose: `nextBg()`
         // must fire at exactly this point in render order, same as every
@@ -805,6 +669,178 @@ export function CaseBody({ c }: { c: Case }) {
             </div>
           </Reveal>
         ))
+      )}
+
+      {/* Conteúdo — narrativa longa (objetivo, processo, papel), separada da
+          frase de impacto curta da seção "O problema" acima. Com
+          `conteudo_video_url` preenchido, vira duas colunas: texto alinhado
+          à esquerda + vídeo à direita (ex. UOL Deezer: um vídeo-resumo das
+          entrevistas/testes de usabilidade ao lado do texto que descreve
+          esse mesmo processo) — sem o campo, cai no layout centrado padrão
+          de sempre. Distinto da seção "Vídeo" mais abaixo (`video_url`,
+          própria seção "Eu explico esse case") — esse vídeo aqui ilustra o
+          CONTEÚDO ao lado dele, não é um vídeo do case como um todo. */}
+      {c.conteudo && (
+        <Reveal>
+          {c.conteudo_video_url ? (
+            <div ref={conteudoGridRef} className="relative mx-auto grid max-w-6xl items-start gap-12 px-6 py-20 lg:grid-cols-2">
+              <div>{renderConteudo(c.conteudo, conteudoVideoAnchorRef)}</div>
+              {/* `lg:sticky` — o vídeo fica parado na tela enquanto o texto
+                  (normalmente bem mais alto) rola ao lado, efeito parallax
+                  leve. Só em telas grandes (`lg:`): no mobile as colunas
+                  empilham, e sticky não faz sentido pra uma coluna que já
+                  não compartilha espaço de rolagem com a outra. */}
+              <div className="lg:sticky lg:top-24">
+                {c.conteudo_video_titulo && (
+                  <h3 className="mb-4 text-xl font-black text-navy">{c.conteudo_video_titulo}</h3>
+                )}
+                <div ref={conteudoVideoBoxRef} className="overflow-hidden rounded-2xl border border-border shadow-2xl">
+                  {c.conteudo_video_url.endsWith(".mp4") ? (
+                    <video src={c.conteudo_video_url} controls className="w-full" preload="metadata" />
+                  ) : (
+                    <div className="relative aspect-video">
+                      <iframe
+                        src={embedVideoUrl(c.conteudo_video_url)}
+                        className="absolute inset-0 h-full w-full"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <ConnectorLine
+                containerRef={conteudoGridRef}
+                fromRef={conteudoVideoAnchorRef}
+                toRef={conteudoVideoBoxRef}
+              />
+            </div>
+          ) : (
+            <div className="mx-auto max-w-2xl px-6 py-20">{renderConteudo(c.conteudo)}</div>
+          )}
+        </Reveal>
+      )}
+
+      {/* Protótipo — largura total, sem moldura, sem rodapé de ferramenta.
+          Fundo fixo em `prototipo_bg_color` (não entra na rotação de
+          `nextBg()`) — deve ser a MESMA cor de fundo do próprio protótipo
+          embutido (preto puro pro canvas do Figma, branco pra um protótipo
+          com UI branca, ex. eSIM Vivo), pra fundir com o embed em vez de
+          criar uma borda visível entre "moldura do site" e "conteúdo do
+          protótipo". Sem `prototipo_bg_color` definido, cai pro preto (era
+          o único caso até agora — Figma). */}
+      {c.figma_url && (
+        <section className="relative px-6 pt-16" style={{ backgroundColor: prototypeBg }}>
+          <Reveal>
+            <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
+            <h2
+              className={`mx-auto mt-3 max-w-xl text-center text-4xl font-black sm:text-5xl ${
+                prototypeIsLight ? "text-[#1a1a1a]" : "text-navy"
+              }`}
+            >
+              Explore o fluxo completo
+            </h2>
+          </Reveal>
+          <Reveal delay={0.15}>
+            <Bleed className="mt-10">
+              <iframe
+                src={embedPrototypeUrl(c.figma_url)}
+                className="w-full"
+                style={{ height: `${c.prototipo_altura ?? 1500}px` }}
+                allow="fullscreen"
+                allowFullScreen
+              />
+            </Bleed>
+          </Reveal>
+        </section>
+      )}
+
+      {/* Abrir no Figma/protótipo — faixa full-bleed clicável, mesmo padrão
+          da faixa de PDF/"Ver portfólio completo" (não mais uma pílula
+          pequena isolada dentro da seção do protótipo). */}
+      {c.figma_url && (
+        <a
+          href={c.figma_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex items-center justify-center overflow-hidden px-6 py-14 text-center"
+        >
+          <div className="animated-gradient absolute inset-0" />
+          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
+          <Reveal>
+            <span className="relative inline-flex items-center gap-3 text-xl font-black text-white sm:text-2xl">
+              {isFigmaUrl(c.figma_url) ? <Figma size={22} className="shrink-0" /> : null}
+              {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
+              <ArrowUpRight
+                size={24}
+                className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+              />
+            </span>
+          </Reveal>
+        </a>
+      )}
+
+      {/* Telas em destaque — esteira contínua */}
+      {screens.length > 0 && (
+        <section className="relative overflow-hidden py-32" style={{ backgroundColor: nextBg() }}>
+          <Reveal>
+            <SectionEyebrow className="px-6">O produto</SectionEyebrow>
+            <h2 className="mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black text-navy sm:text-5xl">
+              Telas em destaque
+            </h2>
+          </Reveal>
+          <div className="mt-14">
+            {c.hero_device === "laptop" ? (
+              <DesktopScreenShowcase screens={screens} />
+            ) : (
+              <ScreenMarquee screens={screens} />
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Style guide */}
+      {hasStyleGuide && (
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
+          <Reveal>
+            <SectionEyebrow>Style guide</SectionEyebrow>
+            <h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black text-navy sm:text-5xl">
+              A linguagem visual
+            </h2>
+          </Reveal>
+
+          <div className="mx-auto mt-16 max-w-4xl">
+            {(c.style_guide.colors?.length ?? 0) > 0 && (
+              <Reveal delay={0.1}>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {c.style_guide.colors!.map((color) => (
+                    <div key={color.hex} className="overflow-hidden rounded-2xl border border-border bg-bg">
+                      <div className="h-20" style={{ backgroundColor: color.hex }} />
+                      <div className="p-3">
+                        <p className="text-sm font-bold text-navy">{color.name}</p>
+                        <p className="mt-0.5 font-mono text-xs text-gray">{color.hex}</p>
+                        <p className="mt-1 text-xs text-slate">{color.role}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+
+            {(c.style_guide.patterns?.length ?? 0) > 0 && (
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                {c.style_guide.patterns!.map((p, i) => (
+                  <Reveal key={p.title} delay={i * 0.06}>
+                    <div className="rounded-2xl border border-border bg-bg p-5">
+                      <h3 className="font-bold text-navy">{p.title}</h3>
+                      <p className="mt-1.5 text-sm text-slate">{p.desc}</p>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Resultados — anel pra %, gauge pra NPS, card de número grande pro

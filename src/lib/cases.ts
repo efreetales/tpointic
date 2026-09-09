@@ -46,6 +46,7 @@ export type Case = {
   video_url: string | null;
   figma_url: string | null;
   prototipo_bg_color: string | null;
+  prototipo_altura: number | null;
   slides_url: string | null;
   pdf_url: string | null;
   destaques: Destaque[];
@@ -54,6 +55,7 @@ export type Case = {
   problema_texto: string | null;
   problema_bg_url: string | null;
   problema_bg_color: string | null;
+  problema_video_url: string | null;
   steps: Step[];
   steps_eyebrow: string | null;
   steps_title: string | null;
