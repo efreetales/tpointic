@@ -37,6 +37,8 @@ export type Case = {
   cliente: string | null;
   resumo: string | null;
   conteudo: string | null;
+  conteudo_video_url: string | null;
+  conteudo_video_titulo: string | null;
   capa_url: string | null;
   capa_focal: string | null;
   publicado_em: string;

@@ -10,6 +10,8 @@ import {
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
+import { StatRing } from "@/components/stat-ring";
+import { AnimatedBar } from "@/components/animated-bar";
 
 export const metadata: Metadata = {
   title: "Liderança — TPointic",
@@ -104,12 +106,19 @@ const ACOES = [
   },
 ];
 
+// Pontos fortes reais do Check Survey 2023 (5 respostas da equipe direta) —
+// `delta` é a variação frente à edição anterior, exatamente como reportado
+// na ferramenta (screenshot do relatório real, não estimado).
 const FORCAS = [
-  { label: "Dinâmicas refletem cultura Meli", valor: "100%" },
-  { label: "Líder eleva nível da equipe", valor: "100%" },
-  { label: "Ambiente promove bem-estar", valor: "100%" },
-  { label: "Feedbacks efetivos", valor: "100%" },
-  { label: "Coordenação efetiva de projetos", valor: "100%" },
+  { label: "Dinâmicas refletem cultura Meli", valor: "100%", delta: "+12" },
+  { label: "Alcance de objetivos com eficiência", valor: "100%", delta: "+13" },
+  { label: "Coordenação efetiva de projetos", valor: "100%", delta: "+13" },
+  { label: "Líder eleva nível da equipe", valor: "100%", delta: "+10" },
+  { label: "Ambiente promove bem-estar", valor: "100%", delta: "+13" },
+  { label: "Líder acessível", valor: "100%", delta: "+7" },
+  { label: "Feedbacks recorrentes e efetivos", valor: "100%", delta: "+13" },
+  { label: "Líder motiva a inovar", valor: "100%", delta: "+12" },
+  { label: "Objetivos conectados à visão Meli", valor: "100%", delta: "+8" },
 ];
 
 const DEPOIMENTOS = [
@@ -157,7 +166,7 @@ export default function LiderancaPage() {
                 (tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-border bg-surface px-3 py-1"
+                    className="rounded-full border border-white/15 bg-white/5 px-3 py-1 backdrop-blur-sm"
                   >
                     {tag}
                   </span>
@@ -167,22 +176,14 @@ export default function LiderancaPage() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div className="mt-10 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-                <p className="text-6xl font-black text-coral">
-                  <Counter value="92%" />
-                </p>
-                <p className="mt-2 text-xs font-bold uppercase tracking-widest text-gray">
-                  Engagement
-                </p>
+            <div className="mt-10 flex flex-wrap items-start justify-center gap-6 sm:justify-start">
+              <div className="rounded-2xl border border-white/15 bg-white/5 px-8 py-6 backdrop-blur-sm">
+                <StatRing value="92%" percent={92} label="Engagement" />
+                <p className="mt-1 text-center text-xs font-bold text-emerald-400">▲ 4 vs. edição anterior</p>
               </div>
-              <div className="rounded-2xl border border-border bg-surface p-8 text-center">
-                <p className="text-6xl font-black text-coral">
-                  <Counter value="88%" />
-                </p>
-                <p className="mt-2 text-xs font-bold uppercase tracking-widest text-gray">
-                  Excelência (EXE)
-                </p>
+              <div className="rounded-2xl border border-white/15 bg-white/5 px-8 py-6 backdrop-blur-sm">
+                <StatRing value="88%" percent={88} label="Excelência (EXE)" />
+                <p className="mt-1 text-center text-xs font-bold text-emerald-400">▲ 2 vs. edição anterior</p>
               </div>
             </div>
           </Reveal>
@@ -209,7 +210,7 @@ export default function LiderancaPage() {
           <div className="mt-8 grid gap-5 sm:grid-cols-2">
             {PILARES.map((p, i) => (
               <Reveal key={p.title} delay={i * 0.08}>
-                <div className="h-full rounded-2xl border border-border bg-surface p-6">
+                <div className="h-full rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm">
                   <p.icon size={26} className="text-coral" />
                   <h3 className="mt-3 font-bold text-navy">{p.title}</h3>
                   <ul className="mt-3 space-y-1.5 text-sm text-slate">
@@ -236,21 +237,29 @@ export default function LiderancaPage() {
             </h2>
             <p className="mt-3 text-slate">
               Avaliação semestral anônima do Mercado Livre, respondida pela
-              própria equipe direta sobre a liderança recebida.
+              própria equipe direta sobre a liderança recebida (5 respostas).
             </p>
           </Reveal>
 
           <div className="mt-8 space-y-3">
             {FORCAS.map((f, i) => (
               <Reveal key={f.label} delay={i * 0.05}>
-                <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-5 py-3">
-                  <span className="flex items-center gap-2 text-sm font-bold text-navy">
-                    <CheckCircle size={16} className="text-coral" />
-                    {f.label}
-                  </span>
-                  <span className="font-black text-coral">
-                    <Counter value={f.valor} />
-                  </span>
+                <div className="rounded-xl border border-white/15 bg-white/5 px-5 py-4 backdrop-blur-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-sm font-bold text-navy">
+                      <CheckCircle size={16} className="text-coral" />
+                      {f.label}
+                    </span>
+                    <span className="flex items-baseline gap-2">
+                      <span className="font-black text-coral">
+                        <Counter value={f.valor} />
+                      </span>
+                      <span className="text-xs font-bold text-emerald-400">{f.delta}</span>
+                    </span>
+                  </div>
+                  <div className="mt-3">
+                    <AnimatedBar percent={parseInt(f.valor, 10)} />
+                  </div>
                 </div>
               </Reveal>
             ))}
@@ -273,7 +282,7 @@ export default function LiderancaPage() {
           <div className="mt-8 space-y-4">
             {ACOES.map((a, i) => (
               <Reveal key={a.title} delay={i * 0.05}>
-                <div className="rounded-2xl border border-border bg-surface p-6">
+                <div className="rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm">
                   <h3 className="font-bold text-navy">{a.title}</h3>
                   <p className="mt-2 text-sm text-slate">{a.description}</p>
                   <p className="mt-3 text-xs font-bold uppercase tracking-widest text-coral">
@@ -301,7 +310,7 @@ export default function LiderancaPage() {
           <div className="mt-8 grid gap-6 sm:grid-cols-3">
             {DEPOIMENTOS.map((d, i) => (
               <Reveal key={d.name} delay={i * 0.08}>
-                <blockquote className="h-full rounded-2xl border border-border bg-surface p-6">
+                <blockquote className="h-full rounded-2xl border border-white/15 bg-white/5 p-6 backdrop-blur-sm">
                   <p className="text-sm text-slate">&ldquo;{d.quote}&rdquo;</p>
                   <footer className="mt-4 text-sm font-bold text-navy">
                     {d.name}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ComponentType, type ReactNode } from "react";
+import { useRef, useState, type ComponentType, type ReactNode, type RefObject } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -27,11 +27,11 @@ import {
   Zap,
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
-import { Counter } from "@/components/counter";
 import { StatRing } from "@/components/stat-ring";
 import { NpsGauge } from "@/components/nps-gauge";
 import { PieChart } from "@/components/pie-chart";
 import { GalleryStepCounter } from "@/components/gallery-step-counter";
+import { ConnectorLine } from "@/components/connector-line";
 import { ScreenMarquee } from "@/components/screen-marquee";
 import { DesktopScreenShowcase } from "@/components/desktop-screen-showcase";
 import { Phone3D } from "@/components/phone-3d";
@@ -103,6 +103,15 @@ const PROBLEMA_BG_NATURAL: Record<string, { width: number; height: number }> = {
   "e-sim-vivo-empresas": { width: 1370, height: 1540 },
 };
 
+// Same idea, for `capa_url` when `hero_device === "laptop"` — the capa is a
+// wide screenshot of laptop/notebook mockups (ex. UOL Deezer), not a portrait
+// product shot, so the default `aspect-[4/3] object-cover` hero card crops
+// off the edges of the notebooks. Real width/height lets it render at its
+// own aspect ratio, uncropped, same as `PROBLEMA_BG_NATURAL` does above.
+const CAPA_NATURAL: Record<string, { width: number; height: number }> = {
+  "uol-musica-deezer": { width: 829, height: 483 },
+};
+
 // Supports a simple **destaque** marker inside `problema_texto`. Color is
 // passed in by the caller instead of hardcoded — the two branches below
 // need different colors on purpose: the light Vivo-branded variant
@@ -130,8 +139,11 @@ function highlightProblemText(text: string, colorClassName: string) {
 // into the body copy, flat and forgettable. Detect that shape heuristically
 // (single line, short, not a bullet list) and give it real visual weight;
 // detect "- item" blocks and render them as a real list instead of dashes
-// sitting in a wall of text.
-function renderConteudo(text: string) {
+// sitting in a wall of text. A bullet line ending in `{{video}}` (marker
+// stripped before rendering) gets `videoAnchorRef` attached to its `<li>` —
+// used by `<ConnectorLine>` to draw a line from that specific bullet to
+// `conteudo_video_url`'s player, when the case sets both.
+function renderConteudo(text: string, videoAnchorRef?: RefObject<HTMLLIElement | null>) {
   return text.split(/\n\n+/).map((block, i) => {
     const trimmed = block.trim();
     if (!trimmed) return null;
@@ -142,12 +154,23 @@ function renderConteudo(text: string) {
     if (isBulletList) {
       return (
         <ul key={i} className="mt-6 space-y-2">
-          {lines.map((l, j) => (
-            <li key={j} className="flex gap-3 text-lg leading-relaxed text-navy">
-              <span className="mt-1 text-coral">—</span>
-              <span>{l.slice(2)}</span>
-            </li>
-          ))}
+          {lines.map((l, j) => {
+            const isVideoAnchor = l.includes("{{video}}");
+            const label = l.slice(2).replace(/\s*\{\{video\}\}\s*$/, "");
+            return (
+              <li
+                key={j}
+                ref={isVideoAnchor ? videoAnchorRef : undefined}
+                className="flex gap-3 text-lg leading-relaxed text-navy"
+              >
+                <span className="mt-1 text-coral">—</span>
+                {/* Mesma cor da linha do ConnectorLine (#66fcf1) + negrito —
+                    reforça visualmente que ESTE bullet específico é o que
+                    está linkado ao vídeo ao lado, não só a linha sozinha. */}
+                <span className={isVideoAnchor ? "font-bold text-[#66fcf1]" : undefined}>{label}</span>
+              </li>
+            );
+          })}
         </ul>
       );
     }
@@ -228,6 +251,16 @@ function embedPrototypeUrl(url: string) {
   }
 }
 
+// A Google Drive share link (`/file/d/<id>/view?usp=...`) isn't embeddable
+// as-is — Drive needs the same file id on a `/preview` path instead. Any
+// other video URL (Vimeo/YouTube embed link, a direct `.mp4`) passes
+// through unchanged, so this is safe to run on every `video_url` regardless
+// of source.
+function embedVideoUrl(url: string) {
+  const match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+}
+
 export function CaseBody({ c }: { c: Case }) {
   const screens = c.screens.map((s) => ({ src: s.url, alt: s.alt }));
   const hasStepFlow = c.steps.length > 0;
@@ -251,12 +284,14 @@ export function CaseBody({ c }: { c: Case }) {
     ...c.pie_charts.map((p) => ({ kind: "pie" as const, key: p.title, grupo: p.grupo ?? DEFAULT_RESULT_GROUP, data: p })),
   ];
   const resultGroups = Array.from(new Set(resultItems.map((item) => item.grupo)));
-  const hasFancyResults = percentStats.length > 0 || npsStats.length > 0 || c.pie_charts.length > 0;
   // Only meaningful when `resultGroups.length > 1` (tab menu visible) — the
   // grid shows every item when there's just one implicit group, so this
   // state is simply unused in that case.
   const [activeGroup, setActiveGroup] = useState(resultGroups[0] ?? DEFAULT_RESULT_GROUP);
   const galleryTrackRef = useRef<HTMLDivElement>(null);
+  const conteudoGridRef = useRef<HTMLDivElement>(null);
+  const conteudoVideoAnchorRef = useRef<HTMLLIElement>(null);
+  const conteudoVideoBoxRef = useRef<HTMLDivElement>(null);
   const visibleResultItems = resultGroups.length > 1 ? resultItems.filter((item) => item.grupo === activeGroup) : resultItems;
   const hasStyleGuide = (c.style_guide.colors?.length ?? 0) > 0 || (c.style_guide.patterns?.length ?? 0) > 0;
   // When every gallery panel is white (e.g. a case built from plain
@@ -334,7 +369,29 @@ export function CaseBody({ c }: { c: Case }) {
               )}
             </motion.div>
           ) : (
-            c.capa_url && (
+            c.capa_url &&
+            (c.hero_device === "laptop" ? (
+              // Sem card/moldura/corte — a capa já É a imagem final (mockups
+              // de notebook), enquadrar num `aspect-[4/3] object-cover`
+              // cortaria as bordas. `CAPA_NATURAL` dá a proporção real pra
+              // ela renderizar no tamanho certo em vez de espremida/cortada.
+              <motion.div
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.9, delay: 0.2 }}
+                className="mx-auto w-full max-w-2xl"
+              >
+                <Image
+                  src={c.capa_url}
+                  alt=""
+                  width={CAPA_NATURAL[c.slug]?.width ?? 1200}
+                  height={CAPA_NATURAL[c.slug]?.height ?? 800}
+                  className="h-auto w-full"
+                  priority
+                  sizes="(min-width: 1024px) 640px, 100vw"
+                />
+              </motion.div>
+            ) : (
               <motion.div
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -351,7 +408,7 @@ export function CaseBody({ c }: { c: Case }) {
                   sizes="(min-width: 1024px) 480px, 100vw"
                 />
               </motion.div>
-            )
+            ))
           )}
         </div>
 
@@ -463,130 +520,53 @@ export function CaseBody({ c }: { c: Case }) {
         </section>
       )}
 
-      {/* Resultados — anel pra %, gauge pra NPS, card de número grande pro
-          resto (texto/tempo), donut pra distribuição por categoria — todos
-          no mesmo card transparente (`rounded-2xl border-white/15 bg-white/5`),
-          numa grade que estica cada card até a altura da linha (visual
-          "blocado", em vez de peças soltas de tamanhos diferentes). Cai pro
-          grid de contador simples de sempre quando não há nenhum %, NPS ou
-          gráfico de pizza (só cards de texto/contagem). */}
-      {hasFancyResults ? (
-        <section className="animated-gradient relative px-6 py-32">
-          <div className="absolute inset-0 bg-black/50" />
-          <div className="relative">
-            <Reveal>
-              <SectionEyebrow>Resultados</SectionEyebrow>
-              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
-                O que mudou de verdade
-              </h2>
-            </Reveal>
-
-            {/* Menu de abas — só aparece quando o case usa `grupo` em mais de
-                um destaque/gráfico (ver `DEFAULT_RESULT_GROUP`). Cases com
-                poucos resultados (a maioria) nunca setam `grupo`, então tudo
-                cai no mesmo grupo implícito e esse menu simplesmente não
-                renderiza — comportamento idêntico ao de antes desse campo
-                existir. Existe pra casos como a Sulamérica, com resultados
-                demais (eficiência + NPS antes/depois + 2 gráficos de pizza)
-                pra mostrar tudo de uma vez sem virar uma parede de dados. */}
-            {resultGroups.length > 1 && (
-              <Reveal delay={0.1}>
-                <div className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-3">
-                  {resultGroups.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setActiveGroup(g)}
-                      className={`rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-widest transition-colors ${
-                        activeGroup === g
-                          ? "border-white bg-white text-black"
-                          : "border-white/30 text-white/70 hover:border-white/60 hover:text-white"
-                      }`}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </div>
-              </Reveal>
-            )}
-
-            <Reveal delay={0.15}>
-              <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {visibleResultItems.map((item) => (
-                  <div
-                    key={item.key}
-                    className="flex h-full flex-col items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-8 text-center backdrop-blur-sm"
-                  >
-                    {item.kind === "ring" &&
-                      (() => {
-                        const percent = Math.abs(parseInt(item.data.valor, 10));
-                        return (
-                          <StatRing
-                            value={item.data.valor}
-                            percent={Number.isFinite(percent) ? percent : 0}
-                            label={item.data.label}
-                            color="#66fcf1"
-                            icon={item.data.icon ? ICONS[item.data.icon] : undefined}
-                          />
-                        );
-                      })()}
-                    {item.kind === "nps" && <NpsGauge value={parseInt(item.data.valor, 10)} label={item.data.label} />}
-                    {item.kind === "card" && (
-                      <>
-                        <p className="text-3xl font-black text-white sm:text-4xl">{item.data.valor}</p>
-                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-white/80">
-                          {item.data.label}
-                        </p>
-                      </>
-                    )}
-                    {item.kind === "pie" && (
-                      <PieChart title={item.data.title} slices={item.data.slices} total={item.data.total} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-          </div>
-        </section>
-      ) : (
-        hasStats && (
-          <section className="relative border-y border-border px-6 py-20" style={{ backgroundColor: nextBg() }}>
-            <Reveal>
-              <SectionEyebrow>Resultados</SectionEyebrow>
-              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
-                O que mudou de verdade
-              </h2>
-            </Reveal>
-
-            <div className="mx-auto mt-14 flex max-w-4xl flex-wrap justify-center gap-x-16 gap-y-10">
-              {c.destaques.map((d, i) => {
-                const Icon = d.icon ? ICONS[d.icon] : undefined;
-                return (
-                  <Reveal key={d.label} delay={i * 0.1}>
-                    <div className="text-center">
-                      {Icon && (
-                        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-bg text-coral ring-1 ring-border">
-                          <Icon size={22} />
-                        </div>
-                      )}
-                      <p className="text-5xl font-black text-coral sm:text-6xl">
-                        <Counter value={d.valor} />
-                      </p>
-                      <p className="mt-2 text-xs font-bold uppercase tracking-widest text-gray">{d.label}</p>
-                    </div>
-                  </Reveal>
-                );
-              })}
-            </div>
-          </section>
-        )
-      )}
-
       {/* Conteúdo — narrativa longa (objetivo, processo, papel), separada da
-          frase de impacto curta da seção "O problema" acima. */}
+          frase de impacto curta da seção "O problema" acima. Com
+          `conteudo_video_url` preenchido, vira duas colunas: texto alinhado
+          à esquerda + vídeo à direita (ex. UOL Deezer: um vídeo-resumo das
+          entrevistas/testes de usabilidade ao lado do texto que descreve
+          esse mesmo processo) — sem o campo, cai no layout centrado padrão
+          de sempre. Distinto da seção "Vídeo" mais abaixo (`video_url`,
+          própria seção "Eu explico esse case") — esse vídeo aqui ilustra o
+          CONTEÚDO ao lado dele, não é um vídeo do case como um todo. */}
       {c.conteudo && (
         <Reveal>
-          <div className="mx-auto max-w-2xl px-6 py-20">{renderConteudo(c.conteudo)}</div>
+          {c.conteudo_video_url ? (
+            <div ref={conteudoGridRef} className="relative mx-auto grid max-w-6xl items-start gap-12 px-6 py-20 lg:grid-cols-2">
+              <div>{renderConteudo(c.conteudo, conteudoVideoAnchorRef)}</div>
+              {/* `lg:sticky` — o vídeo fica parado na tela enquanto o texto
+                  (normalmente bem mais alto) rola ao lado, efeito parallax
+                  leve. Só em telas grandes (`lg:`): no mobile as colunas
+                  empilham, e sticky não faz sentido pra uma coluna que já
+                  não compartilha espaço de rolagem com a outra. */}
+              <div className="lg:sticky lg:top-24">
+                {c.conteudo_video_titulo && (
+                  <h3 className="mb-4 text-xl font-black text-navy">{c.conteudo_video_titulo}</h3>
+                )}
+                <div ref={conteudoVideoBoxRef} className="overflow-hidden rounded-2xl border border-border shadow-2xl">
+                  {c.conteudo_video_url.endsWith(".mp4") ? (
+                    <video src={c.conteudo_video_url} controls className="w-full" preload="metadata" />
+                  ) : (
+                    <div className="relative aspect-video">
+                      <iframe
+                        src={embedVideoUrl(c.conteudo_video_url)}
+                        className="absolute inset-0 h-full w-full"
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <ConnectorLine
+                containerRef={conteudoGridRef}
+                fromRef={conteudoVideoAnchorRef}
+                toRef={conteudoVideoBoxRef}
+              />
+            </div>
+          ) : (
+            <div className="mx-auto max-w-2xl px-6 py-20">{renderConteudo(c.conteudo)}</div>
+          )}
         </Reveal>
       )}
 
@@ -599,7 +579,7 @@ export function CaseBody({ c }: { c: Case }) {
           protótipo". Sem `prototipo_bg_color` definido, cai pro preto (era
           o único caso até agora — Figma). */}
       {c.figma_url && (
-        <section className="relative px-6 py-32" style={{ backgroundColor: prototypeBg }}>
+        <section className="relative px-6 py-16" style={{ backgroundColor: prototypeBg }}>
           <Reveal>
             <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
             <h2
@@ -611,7 +591,7 @@ export function CaseBody({ c }: { c: Case }) {
             </h2>
           </Reveal>
           <Reveal delay={0.15}>
-            <Bleed className="mt-14">
+            <Bleed className="mt-10">
               <iframe
                 src={embedPrototypeUrl(c.figma_url)}
                 className="h-[1500px] w-full"
@@ -619,21 +599,33 @@ export function CaseBody({ c }: { c: Case }) {
                 allowFullScreen
               />
             </Bleed>
-            <div className="mx-auto mt-6 flex max-w-3xl justify-center">
-              <a
-                href={c.figma_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-bold transition-colors hover:border-coral hover:text-coral ${
-                  prototypeIsLight ? "border-[#1a1a1a]/20 text-[#1a1a1a]" : "border-border text-navy"
-                }`}
-              >
-                {isFigmaUrl(c.figma_url) ? <Figma size={16} /> : <ArrowUpRight size={16} />}
-                {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
-              </a>
-            </div>
           </Reveal>
         </section>
+      )}
+
+      {/* Abrir no Figma/protótipo — faixa full-bleed clicável, mesmo padrão
+          da faixa de PDF/"Ver portfólio completo" (não mais uma pílula
+          pequena isolada dentro da seção do protótipo). */}
+      {c.figma_url && (
+        <a
+          href={c.figma_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex items-center justify-center overflow-hidden px-6 py-14 text-center"
+        >
+          <div className="animated-gradient absolute inset-0" />
+          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
+          <Reveal>
+            <span className="relative inline-flex items-center gap-3 text-xl font-black text-white sm:text-2xl">
+              {isFigmaUrl(c.figma_url) ? <Figma size={22} className="shrink-0" /> : null}
+              {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
+              <ArrowUpRight
+                size={24}
+                className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+              />
+            </span>
+          </Reveal>
+        </a>
       )}
 
       {/* Telas em destaque — esteira contínua */}
@@ -815,6 +807,103 @@ export function CaseBody({ c }: { c: Case }) {
         ))
       )}
 
+      {/* Resultados — anel pra %, gauge pra NPS, card de número grande pro
+          resto (texto/tempo), donut pra distribuição por categoria — todos
+          no mesmo card transparente (`rounded-2xl border-white/15 bg-white/5`),
+          numa grade que estica cada card até a altura da linha (visual
+          "blocado"). Fica DEPOIS da Galeria/Etapas/Conteúdo de propósito —
+          a lógica narrativa de um case é desafio → processo (como foi
+          feito/validado) → resultado (números/entrega), então o resultado
+          só faz sentido depois de já termos mostrado o processo que levou
+          até ele, nunca antes. **Erro já cometido**: existia um segundo
+          caminho aqui — um grid de `<Counter>` solto sobre fundo sólido,
+          usado quando nenhum destaque era `%`/NPS/pizza (só texto/contagem,
+          ex. UOL Deezer: "crescimento", "2h26", "milhares de usuários/dia").
+          Ficava visualmente pobre (números soltos, sem o mesmo peso "bloco"
+          dos outros cases) bem do lado de seções cuidadosamente desenhadas.
+          Removido — `otherStats`/kind "card" já cobre esse formato dentro
+          do MESMO grid de cards transparentes, então não havia razão pra um
+          caminho visual à parte. */}
+      {hasStats || c.pie_charts.length > 0 ? (
+        <section className="animated-gradient relative px-6 py-32">
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative">
+            <Reveal>
+              <SectionEyebrow>Resultados</SectionEyebrow>
+              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
+                O que mudou de verdade
+              </h2>
+            </Reveal>
+
+            {/* Menu de abas — só aparece quando o case usa `grupo` em mais de
+                um destaque/gráfico (ver `DEFAULT_RESULT_GROUP`). Cases com
+                poucos resultados (a maioria) nunca setam `grupo`, então tudo
+                cai no mesmo grupo implícito e esse menu simplesmente não
+                renderiza — comportamento idêntico ao de antes desse campo
+                existir. Existe pra casos como a Sulamérica, com resultados
+                demais (eficiência + NPS antes/depois + 2 gráficos de pizza)
+                pra mostrar tudo de uma vez sem virar uma parede de dados. */}
+            {resultGroups.length > 1 && (
+              <Reveal delay={0.1}>
+                <div className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-3">
+                  {resultGroups.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setActiveGroup(g)}
+                      className={`rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-widest transition-colors ${
+                        activeGroup === g
+                          ? "border-white bg-white text-black"
+                          : "border-white/30 text-white/70 hover:border-white/60 hover:text-white"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+
+            <Reveal delay={0.15}>
+              <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleResultItems.map((item) => (
+                  <div
+                    key={item.key}
+                    className="flex h-full flex-col items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-8 text-center backdrop-blur-sm"
+                  >
+                    {item.kind === "ring" &&
+                      (() => {
+                        const percent = Math.abs(parseInt(item.data.valor, 10));
+                        return (
+                          <StatRing
+                            value={item.data.valor}
+                            percent={Number.isFinite(percent) ? percent : 0}
+                            label={item.data.label}
+                            color="#66fcf1"
+                            icon={item.data.icon ? ICONS[item.data.icon] : undefined}
+                          />
+                        );
+                      })()}
+                    {item.kind === "nps" && <NpsGauge value={parseInt(item.data.valor, 10)} label={item.data.label} />}
+                    {item.kind === "card" && (
+                      <>
+                        <p className="text-3xl font-black text-white sm:text-4xl">{item.data.valor}</p>
+                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-white/80">
+                          {item.data.label}
+                        </p>
+                      </>
+                    )}
+                    {item.kind === "pie" && (
+                      <PieChart title={item.data.title} slices={item.data.slices} total={item.data.total} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      ) : null}
+
       {/* Vídeo — texto à esquerda, vídeo à direita (não full-bleed: em
           telas grandes um vídeo 100% de largura fica "estourado" demais). */}
       {c.video_url && (
@@ -832,7 +921,7 @@ export function CaseBody({ c }: { c: Case }) {
                 ) : (
                   <div className="relative aspect-video">
                     <iframe
-                      src={c.video_url}
+                      src={embedVideoUrl(c.video_url)}
                       className="absolute inset-0 h-full w-full"
                       allow="autoplay; fullscreen; picture-in-picture"
                       allowFullScreen
