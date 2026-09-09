@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useRef, useState, type ComponentType, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -31,6 +31,7 @@ import { Counter } from "@/components/counter";
 import { StatRing } from "@/components/stat-ring";
 import { NpsGauge } from "@/components/nps-gauge";
 import { PieChart } from "@/components/pie-chart";
+import { GalleryStepCounter } from "@/components/gallery-step-counter";
 import { ScreenMarquee } from "@/components/screen-marquee";
 import { DesktopScreenShowcase } from "@/components/desktop-screen-showcase";
 import { Phone3D } from "@/components/phone-3d";
@@ -59,17 +60,19 @@ const ICONS: Record<string, ComponentType<{ size?: number }>> = {
   heart: Heart,
 };
 
-// Shared dark palette rotated across both the flat sections between case
-// content (`nextBg()`, below) and the sticky-parallax gallery panels
-// (`GALLERY_BG_FALLBACK`) — distinct background colors are what actually
-// separates one section from the next; on the near-black `bg-bg`/`bg-surface`
-// tones (#0a0a0a/#141414) alternating between just those two read as "one
-// big black block" no matter how much padding separates them. A glow/seam
-// effect at the section boundary was tried before and dropped — didn't read
-// as a strong enough separator and got in the way visually. A gallery item
-// can override its own panel via `gallery[].bg`.
+// Shared dark palette rotated via `nextBg()` (below) across every flat
+// section, including the sticky-parallax gallery panels — one continuous
+// rotation, not two separate systems, is what makes the gallery header and
+// its first panel share the same color instead of clashing (see the
+// gallery section's own comment for why that matters). Distinct background
+// colors are what actually separates one section from the next; on the
+// near-black `bg-bg`/`bg-surface` tones (#0a0a0a/#141414) alternating
+// between just those two read as "one big black block" no matter how much
+// padding separates them. A glow/seam effect at the section boundary was
+// tried before and dropped — didn't read as a strong enough separator and
+// got in the way visually. A gallery item can override its own panel via
+// `gallery[].bg`.
 const SECTION_BG_PALETTE = ["#0a0a0a", "#12102a", "#0a1f1d", "#1a0f1f", "#141420"];
-const GALLERY_BG_FALLBACK = SECTION_BG_PALETTE;
 
 // Fallback bucket for any `destaques`/`pie_charts` item without its own
 // `grupo` — every item lands in this one implicit group, so the tab menu
@@ -253,6 +256,7 @@ export function CaseBody({ c }: { c: Case }) {
   // grid shows every item when there's just one implicit group, so this
   // state is simply unused in that case.
   const [activeGroup, setActiveGroup] = useState(resultGroups[0] ?? DEFAULT_RESULT_GROUP);
+  const galleryTrackRef = useRef<HTMLDivElement>(null);
   const visibleResultItems = resultGroups.length > 1 ? resultItems.filter((item) => item.grupo === activeGroup) : resultItems;
   const hasStyleGuide = (c.style_guide.colors?.length ?? 0) > 0 || (c.style_guide.patterns?.length ?? 0) > 0;
   // When every gallery panel is white (e.g. a case built from plain
@@ -700,57 +704,105 @@ export function CaseBody({ c }: { c: Case }) {
           `position: sticky`, e overflow non-visible em qualquer ancestral
           quebra o efeito (documentado na skill tpointic-wow-case). */}
       {c.gallery.length > 0 ? (
-        <section
-          className="relative py-32"
-          style={{ backgroundColor: galleryIsLight ? "#ffffff" : nextBg() }}
-        >
-          <Reveal>
-            <SectionEyebrow light={galleryIsLight} className="px-6">
-              De perto
-            </SectionEyebrow>
-            <h2
-              className={`mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black sm:text-5xl ${
-                galleryIsLight ? "text-[#1a1a1a]" : "text-navy"
-              }`}
-            >
-              {c.titulo}
-            </h2>
-            {c.gallery_intro && (
-              <p
-                className={`mx-auto mt-6 max-w-2xl px-6 text-center text-lg leading-relaxed ${
-                  galleryIsLight ? "text-[#4a4a4a]" : "text-slate"
-                }`}
-              >
-                {c.gallery_intro}
-              </p>
-            )}
-          </Reveal>
-
-          <div className="relative mt-16">
-            {c.gallery.map((item, i) => (
-              <div
-                key={item.url}
-                className="sticky top-0 flex h-screen w-full flex-col overflow-hidden lg:flex-row"
-                style={{ backgroundColor: item.bg ?? GALLERY_BG_FALLBACK[i % GALLERY_BG_FALLBACK.length] }}
-              >
-                {item.caption && (
-                  <div className="flex flex-1 items-center justify-center px-6 py-10 text-center lg:w-1/2 lg:flex-none lg:justify-end lg:px-16 lg:text-left">
-                    <p className="max-w-md text-2xl font-black text-white sm:text-4xl">{item.caption}</p>
-                  </div>
+        // IIFE (not a hoisted `const` before the JSX) on purpose: `nextBg()`
+        // must fire at exactly this point in render order, same as every
+        // other section's inline `nextBg()` call — hoisting this above the
+        // earlier sections would grab a color out of turn and shift the
+        // whole rotation. Reusing this one `galleryBg` value for both the
+        // section background AND panel 0's default is what makes the header
+        // and the first panel share the same color (previously they came
+        // from two independent color sources — the header from `nextBg()`,
+        // panel 0 from a fixed-index array — so they only matched by
+        // coincidence, and usually didn't).
+        (() => {
+          const galleryBg = galleryIsLight ? "#ffffff" : nextBg();
+          return (
+            // `pt-32` só no topo (antes do título) — nada de `pb-32`: um
+            // padding embaixo da trilha de painéis sticky ficaria pintado
+            // com `galleryBg` (a cor do header/painel 0), não a cor do
+            // ÚLTIMO painel, criando uma faixa vazia com cor destoante bem
+            // na virada pra próxima seção. Sem padding aqui, a seção
+            // termina exatamente onde o último painel termina.
+            <section className="relative pt-32" style={{ backgroundColor: galleryBg }}>
+              <Reveal>
+                <SectionEyebrow light={galleryIsLight} className="px-6">
+                  {c.gallery_eyebrow ?? "De perto"}
+                </SectionEyebrow>
+                <h2
+                  className={`mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black sm:text-5xl ${
+                    galleryIsLight ? "text-[#1a1a1a]" : "text-navy"
+                  }`}
+                >
+                  {c.gallery_title ?? c.titulo}
+                </h2>
+                {c.gallery_intro && (
+                  <p
+                    className={`mx-auto mt-6 max-w-2xl px-6 text-center text-lg leading-relaxed ${
+                      galleryIsLight ? "text-[#4a4a4a]" : "text-slate"
+                    }`}
+                  >
+                    {c.gallery_intro}
+                  </p>
                 )}
-                <div className={`relative flex-1 lg:flex-none ${item.caption ? "lg:w-1/2" : "lg:w-full"}`}>
-                  <Image
-                    src={item.url}
-                    alt={item.alt}
-                    fill
-                    className={item.fit === "contain" ? "object-contain p-8" : "object-cover"}
-                    sizes={item.caption ? "(min-width: 1024px) 50vw, 100vw" : "100vw"}
-                  />
-                </div>
+              </Reveal>
+
+              <div ref={galleryTrackRef} className="relative mt-16">
+                {/* Círculo com o número do passo — precisa ser o PRIMEIRO
+                    filho da trilha (não o último): um elemento `sticky` só
+                    fica "grudado" enquanto sua posição normal no fluxo
+                    ainda não passou — perto do topo da trilha ele tem a
+                    trilha inteira de scroll pela frente pra ficar sticky;
+                    no fim (posição antiga, erro já cometido aqui) ele só
+                    "gruda" pertinho do fim da rolagem, ficando invisível
+                    durante quase toda a galeria. Continua pintando por cima
+                    dos painéis por causa do `z-index` explícito (`z-20`),
+                    não da ordem no DOM — ordem no DOM aqui é só sobre
+                    quando o elemento começa a existir no fluxo/scroll, não
+                    sobre o que pinta por cima do quê. Opt-in via
+                    `gallery_numbered` — só faz sentido quando a galeria é
+                    uma sequência numerada (ex. Sulamérica: passos do
+                    teste), não numa galeria de impacto sem ordem
+                    narrativa. */}
+                {c.gallery_numbered && c.gallery.length > 1 && (
+                  <GalleryStepCounter trackRef={galleryTrackRef} total={c.gallery.length} />
+                )}
+                {c.gallery.map((item, i) => (
+                  <div
+                    key={item.url}
+                    className="sticky top-0 flex h-screen w-full flex-col overflow-hidden lg:flex-row"
+                    style={{ backgroundColor: item.bg ?? (i === 0 ? galleryBg : nextBg()) }}
+                  >
+                    {item.caption && (
+                      <div className="flex flex-1 items-center justify-center px-6 py-10 text-center lg:w-1/2 lg:flex-none lg:justify-end lg:px-16 lg:text-left">
+                        <p className="max-w-md text-2xl font-black text-white sm:text-4xl">{item.caption}</p>
+                      </div>
+                    )}
+                    <div className={`relative flex-1 lg:flex-none ${item.caption ? "lg:w-1/2" : "lg:w-full"}`}>
+                      <Image
+                        src={item.url}
+                        alt={item.alt}
+                        fill
+                        className={item.fit === "contain" ? "object-contain p-8" : "object-cover"}
+                        sizes={item.caption ? "(min-width: 1024px) 50vw, 100vw" : "100vw"}
+                      />
+                    </div>
+                  </div>
+                ))}
+                {/* Espaçador invisível de 1 `h-screen` — sem ele, o ÚLTIMO
+                    painel nunca fica "pinado" tempo nenhum: cada painel só
+                    fica grudado no topo enquanto o PRÓXIMO ainda não chegou
+                    lá, então o último (sem próximo) fica limitado pelo fim
+                    da própria trilha — que, sem esse espaçador extra,
+                    coincide exatamente com o fim do próprio painel, dando
+                    zero tempo de tela pra ele. O usuário via isso como um
+                    vão vazio (só o fundo do painel, sem texto/imagem) antes
+                    da próxima seção — na real era o painel sumindo rápido
+                    demais, sem nunca ficar parado na tela como os outros. */}
+                <div aria-hidden className="h-screen" />
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+          );
+        })()
       ) : (
         c.imagens.map((src, i) => (
           <Reveal key={src}>
@@ -812,29 +864,32 @@ export function CaseBody({ c }: { c: Case }) {
         </section>
       )}
 
-      {/* PDF */}
+      {/* PDF — faixa full-bleed clicável, mesmo padrão do "Ver portfólio
+          completo" da home (`.animated-gradient` + overlay escuro + texto
+          grande), não mais um card pequeno solto na página. O card antigo
+          ficava "grudado" no bloco anterior sem respiro nenhum — a faixa
+          cheia resolve isso de graça (ocupa a largura toda, com seu próprio
+          padding vertical generoso). */}
       {c.pdf_url && (
-        <section className="mx-auto max-w-2xl px-6 pb-24">
+        <a
+          href={c.pdf_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group relative flex items-center justify-center overflow-hidden px-6 py-20 text-center"
+        >
+          <div className="animated-gradient absolute inset-0" />
+          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
           <Reveal>
-            <a
-              href={c.pdf_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-coral"
-            >
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-bg text-coral">
-                <FileText size={22} />
-              </span>
-              <span className="flex-1">
-                <span className="block text-xs font-bold uppercase tracking-widest text-gray">
-                  Documento completo
-                </span>
-                <span className="block font-bold text-navy group-hover:text-coral">Ver PDF do projeto</span>
-              </span>
-              <ArrowUpRight size={20} className="text-coral" />
-            </a>
+            <span className="relative inline-flex items-center gap-3 text-2xl font-black text-white sm:text-4xl">
+              <FileText size={28} className="shrink-0" />
+              Ver PDF do projeto
+              <ArrowUpRight
+                size={32}
+                className="shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
+              />
+            </span>
           </Reveal>
-        </section>
+        </a>
       )}
 
       {/* CTA final */}

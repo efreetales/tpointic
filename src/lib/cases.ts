@@ -58,6 +58,9 @@ export type Case = {
   style_guide: StyleGuide;
   gallery: GalleryItem[];
   gallery_intro: string | null;
+  gallery_eyebrow: string | null;
+  gallery_title: string | null;
+  gallery_numbered: boolean;
   pie_charts: PieChartData[];
   screens: Screen[];
   hero_device: string | null;
