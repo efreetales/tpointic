@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
+import { getCaseBgColor } from "@/lib/case-colors";
 
 export const metadata: Metadata = {
   title: "Cases — TPointic",
@@ -33,7 +34,10 @@ export default async function CasesPage() {
               className="group block overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:-translate-y-1 hover:border-coral"
             >
               {c.capa_url && (
-                <div className="relative aspect-video overflow-hidden bg-bg">
+                <div
+                  className="relative aspect-video overflow-hidden"
+                  style={{ backgroundColor: getCaseBgColor(c.slug, i) }}
+                >
                   <Image
                     src={c.capa_url}
                     alt={c.titulo}

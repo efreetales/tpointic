@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
+import { getCaseBgColor } from "@/lib/case-colors";
 
 // Same sticky-stack parallax pattern used inside case pages for the impact
 // gallery (`case-body.tsx`) — each panel covers the previous one while
@@ -9,25 +10,25 @@ import type { Case } from "@/lib/cases";
 // impact than a plain card grid. No `overflow-hidden` on any ancestor: the
 // children rely on `position: sticky`, which breaks under non-visible
 // overflow on a parent (documented in the tpointic-wow-case skill).
-const PANEL_BG = ["#0a0a0a", "#12102a", "#0a1f1d"];
-
-// Per-case override, picked from each brand's own palette (dark enough to
-// keep white text legible — bright brand tones like Vivo's magenta or
-// Sulamérica's CTA orange fail contrast, so we use their darker/navy
-// counterparts instead). Falls back to PANEL_BG by position otherwise.
-const PANEL_BG_BY_SLUG: Record<string, string> = {
-  "e-sim-vivo-empresas": "#3a1160", // dark Vivo purple
-  "agendamento-online-sulamerica": "#1B3A63", // Sulamérica navy (from its style guide)
-};
 
 // Product-shot PNGs (transparent background, no bleed-worthy edges) look
 // bad stretched full-bleed with object-cover — a low-res mockup blown up to
 // fill a 62vw-by-100vh column turns to mush. These render at their own
 // intrinsic size (never upscaled), centered in the panel instead.
-const PANEL_IMG_NATURAL: Record<string, { width: number; height: number }> = {
-  "agendamento-online-sulamerica": { width: 4040, height: 3652 },
-  "uol-musica-deezer": { width: 829, height: 483 },
-  "e-sim-vivo-empresas": { width: 829, height: 483 },
+//
+// `maxDisplayWidth` is a hard cap independent of viewport size: with only
+// `max-h-full max-w-full` (percentages of the column), a very high-res
+// source — e.g. the Sulamérica shot's 4040px intrinsic width — just keeps
+// scaling up to fill the column on large monitors, since the column itself
+// grows with the screen. Capping the display width keeps it a consistent
+// size regardless of how big the visitor's screen is.
+const PANEL_IMG_NATURAL: Record<
+  string,
+  { width: number; height: number; maxDisplayWidth: number }
+> = {
+  "agendamento-online-sulamerica": { width: 4040, height: 3652, maxDisplayWidth: 620 },
+  "uol-musica-deezer": { width: 829, height: 483, maxDisplayWidth: 640 },
+  "e-sim-vivo-empresas": { width: 829, height: 483, maxDisplayWidth: 640 },
 };
 
 // Flare color echoes each panel's own background (a lighter tint of it)
@@ -48,7 +49,7 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
           <div
             key={c.id}
             className="sticky top-0 flex h-screen w-full flex-col lg:flex-row"
-            style={{ backgroundColor: PANEL_BG_BY_SLUG[c.slug] ?? PANEL_BG[i % PANEL_BG.length] }}
+            style={{ backgroundColor: getCaseBgColor(c.slug, i) }}
           >
             <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
               <p className="text-xs font-bold uppercase tracking-widest text-coral">
@@ -74,8 +75,11 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
 
             <div className="relative flex-1 lg:w-[62%] lg:flex-none">
               {c.capa_url && (PANEL_IMG_NATURAL[c.slug] ? (
-                <div className="relative z-10 flex h-full w-full items-center justify-end">
-                  <div className="relative">
+                <div className="relative z-10 h-full w-full">
+                  <div
+                    className="absolute right-0 top-1/2 -translate-y-1/2"
+                    style={{ width: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
+                  >
                     {/* Flare — soft glow centered behind the product shot,
                         sized off the image's own box (not the column), so
                         it stays centered on it regardless of image size.
@@ -92,7 +96,8 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
                       alt={c.titulo}
                       width={PANEL_IMG_NATURAL[c.slug].width}
                       height={PANEL_IMG_NATURAL[c.slug].height}
-                      className="relative h-auto w-auto max-h-full max-w-full object-contain"
+                      className="relative h-auto w-auto max-h-full object-contain"
+                      style={{ maxWidth: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
                     />
                   </div>
                 </div>

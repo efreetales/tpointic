@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -28,12 +28,15 @@ import {
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
-import { SectionSeam } from "@/components/section-seam";
 import { StatRing } from "@/components/stat-ring";
+import { NpsGauge } from "@/components/nps-gauge";
+import { PieChart } from "@/components/pie-chart";
 import { ScreenMarquee } from "@/components/screen-marquee";
+import { DesktopScreenShowcase } from "@/components/desktop-screen-showcase";
 import { Phone3D } from "@/components/phone-3d";
+import { MacbookScreens } from "@/components/macbook-screens";
 import { Bleed } from "@/components/bleed";
-import type { Case } from "@/lib/cases";
+import type { Case, Destaque, PieChartData } from "@/lib/cases";
 
 // Shared icon dictionary — used both by `steps` and `destaques.icon`, keyed
 // by a plain string stored in the DB so content can reference an icon
@@ -56,21 +59,60 @@ const ICONS: Record<string, ComponentType<{ size?: number }>> = {
   heart: Heart,
 };
 
-const SEAM_COLORS = ["#66fcf1", "#7e20cf"];
+// Shared dark palette rotated across both the flat sections between case
+// content (`nextBg()`, below) and the sticky-parallax gallery panels
+// (`GALLERY_BG_FALLBACK`) — distinct background colors are what actually
+// separates one section from the next; on the near-black `bg-bg`/`bg-surface`
+// tones (#0a0a0a/#141414) alternating between just those two read as "one
+// big black block" no matter how much padding separates them. A glow/seam
+// effect at the section boundary was tried before and dropped — didn't read
+// as a strong enough separator and got in the way visually. A gallery item
+// can override its own panel via `gallery[].bg`.
+const SECTION_BG_PALETTE = ["#0a0a0a", "#12102a", "#0a1f1d", "#1a0f1f", "#141420"];
+const GALLERY_BG_FALLBACK = SECTION_BG_PALETTE;
 
-// Default background rotation for the sticky-parallax gallery panels — each
-// one needs a visibly distinct color from its neighbor so it clearly reads
-// as "covering" the previous panel while scrolling, not just a new image on
-// the same background. A case can override per-item via `gallery[].bg`.
-const GALLERY_BG_FALLBACK = ["#0a0a0a", "#12102a", "#0a1f1d", "#1a0f1f"];
+// Fallback bucket for any `destaques`/`pie_charts` item without its own
+// `grupo` — every item lands in this one implicit group, so the tab menu
+// below only ever appears when a case explicitly opts into multiple groups
+// (ex. Sulamérica). A case with just 2-3 results and no `grupo` set keeps
+// rendering exactly as before this field existed.
+const DEFAULT_RESULT_GROUP = "Resultados";
 
-// Supports a simple **destaque** marker inside `problema_texto` — the marked
-// span renders in the site's purple accent, same as the hand-authored
-// Sulamérica page this template was generalized from.
-function highlightProblemText(text: string) {
+// Every metric in the Resultados section — ring, NPS gauge, plain
+// number/text card, or pie chart — normalized into one shape so they can
+// share a single grid + tab-filter instead of four separate hand-wired
+// lists. `key` must be unique across ALL items (labels/titles already are,
+// since they're also what's shown on screen).
+type ResultItem =
+  | { kind: "ring"; key: string; grupo: string; data: Destaque }
+  | { kind: "nps"; key: string; grupo: string; data: Destaque }
+  | { kind: "card"; key: string; grupo: string; data: Destaque }
+  | { kind: "pie"; key: string; grupo: string; data: PieChartData };
+
+// Intrinsic pixel size of each case's `problema_bg_url` image — lets the "O
+// problema" section size it off its own height (`h-full w-auto`) instead of
+// stretching/covering a fixed-width box, which crops off a chunk of the
+// image's own left edge whenever the block ends up tall and narrow (long
+// problem text = tall block; a portrait image forced into a narrow `cover`
+// box loses its left side). Falls back to a plain `object-cover` box for a
+// case that hasn't had its natural size recorded here yet.
+const PROBLEMA_BG_NATURAL: Record<string, { width: number; height: number }> = {
+  "e-sim-vivo-empresas": { width: 1370, height: 1540 },
+};
+
+// Supports a simple **destaque** marker inside `problema_texto`. Color is
+// passed in by the caller instead of hardcoded — the two branches below
+// need different colors on purpose: the light Vivo-branded variant
+// (`problema_bg_url` set) matches its own "O desafio" badge in purple
+// (#7e20cf, Vivo's brand color specifically), while the generic dark
+// centered fallback uses the site's standard coral accent. Never hardcode
+// purple as this function's own default — a case like Sulamérica has its
+// own brand colors, and purple reads as "this is a Vivo case" to anyone
+// who's seen both.
+function highlightProblemText(text: string, colorClassName: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
     i % 2 === 1 ? (
-      <span key={i} className="text-[#7e20cf]">
+      <span key={i} className={colorClassName}>
         {part}
       </span>
     ) : (
@@ -121,6 +163,44 @@ function renderConteudo(text: string) {
   });
 }
 
+// Section eyebrow ("PROTÓTIPO", "RESULTADOS", etc.) as a pill/badge instead
+// of plain colored text — plain text in one fixed color broke whenever a
+// section's background wasn't dark (ex. cyan eyebrow text on the eSIM Vivo
+// prototype's white background was nearly unreadable). The pill's own
+// tinted background+border gives it contrast against ANY section
+// background, light or dark, so it doesn't need to match the page bg at
+// all. `light` picks which brand color: purple (`#7e20cf`) for a light
+// section background, the site's standard cyan (`#66fcf1`) for a dark one —
+// pick based on the actual background color behind it, not the case.
+function SectionEyebrow({
+  children,
+  light = false,
+  justify = "justify-center",
+  className = "",
+}: {
+  children: ReactNode;
+  light?: boolean;
+  /** Tailwind justify-* classes for the wrapper — defaults to centered, pass
+   * e.g. "justify-start" or "justify-center lg:justify-start" to match the
+   * surrounding text alignment. */
+  justify?: string;
+  /** Extra classes on the wrapper (ex. `px-6` to match a section's own
+   * horizontal padding when the eyebrow sits outside a padded container). */
+  className?: string;
+}) {
+  const color = light ? "#7e20cf" : "#66fcf1";
+  return (
+    <div className={`flex ${justify} ${className}`}>
+      <span
+        className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
+        style={{ borderColor: `${color}4d`, backgroundColor: `${color}1a`, color }}
+      >
+        {children}
+      </span>
+    </div>
+  );
+}
+
 // The prototype field accepts any embeddable prototype URL — Figma, a v0.dev
 // share/deploy link, quant-UX, etc. Figma-specific chrome (the page/footer
 // toolbar showing file name, "edited X ago", nav arrows) only applies to
@@ -149,15 +229,42 @@ export function CaseBody({ c }: { c: Case }) {
   const screens = c.screens.map((s) => ({ src: s.url, alt: s.alt }));
   const hasStepFlow = c.steps.length > 0;
   const hasStats = c.destaques.length > 0;
-  // Split into ring-friendly (percent) and plain stats — a case can mix both
-  // (e.g. two % rings plus a qualitative highlight like "redução de
-  // chamadas"), so this isn't a strict either/or the way it first looked.
+  // Split into ring-friendly (percent), gauge-friendly (NPS), and plain
+  // stats — a case can mix all three (e.g. a % ring, an NPS gauge, and a
+  // qualitative highlight like "redução de chamadas"), so this isn't a
+  // strict either/or. NPS is detected by label containing "NPS" + a plain
+  // signed integer valor (-100..100 scale, as reported by the source) —
+  // that's the convention `destaques` for an NPS metric should follow.
   const percentStats = c.destaques.filter((d) => /%\s*$/.test(d.valor.trim()));
-  const otherStats = c.destaques.filter((d) => !/%\s*$/.test(d.valor.trim()));
-  const hasStyleGuide = (c.style_guide.colors?.length ?? 0) > 0 || (c.style_guide.patterns?.length ?? 0) > 0;
+  const npsStats = c.destaques.filter(
+    (d) => !/%\s*$/.test(d.valor.trim()) && /nps/i.test(d.label) && /^-?\d+$/.test(d.valor.trim()),
+  );
+  const otherStats = c.destaques.filter((d) => !percentStats.includes(d) && !npsStats.includes(d));
 
-  let seamToggle = 0;
-  const nextSeam = () => SEAM_COLORS[seamToggle++ % SEAM_COLORS.length];
+  const resultItems: ResultItem[] = [
+    ...percentStats.map((d) => ({ kind: "ring" as const, key: d.label, grupo: d.grupo ?? DEFAULT_RESULT_GROUP, data: d })),
+    ...npsStats.map((d) => ({ kind: "nps" as const, key: d.label, grupo: d.grupo ?? DEFAULT_RESULT_GROUP, data: d })),
+    ...otherStats.map((d) => ({ kind: "card" as const, key: d.label, grupo: d.grupo ?? DEFAULT_RESULT_GROUP, data: d })),
+    ...c.pie_charts.map((p) => ({ kind: "pie" as const, key: p.title, grupo: p.grupo ?? DEFAULT_RESULT_GROUP, data: p })),
+  ];
+  const resultGroups = Array.from(new Set(resultItems.map((item) => item.grupo)));
+  const hasFancyResults = percentStats.length > 0 || npsStats.length > 0 || c.pie_charts.length > 0;
+  // Only meaningful when `resultGroups.length > 1` (tab menu visible) — the
+  // grid shows every item when there's just one implicit group, so this
+  // state is simply unused in that case.
+  const [activeGroup, setActiveGroup] = useState(resultGroups[0] ?? DEFAULT_RESULT_GROUP);
+  const visibleResultItems = resultGroups.length > 1 ? resultItems.filter((item) => item.grupo === activeGroup) : resultItems;
+  const hasStyleGuide = (c.style_guide.colors?.length ?? 0) > 0 || (c.style_guide.patterns?.length ?? 0) > 0;
+  // When every gallery panel is white (e.g. a case built from plain
+  // diagrams/screenshots on white bg), the dark section header above them
+  // reads as a jarring break — flip the header itself to white too so it
+  // reads as one continuous surface instead of dark-to-white-to-dark.
+  const galleryIsLight = c.gallery.length > 0 && c.gallery.every((g) => (g.bg ?? "").toLowerCase() === "#ffffff");
+  const prototypeBg = c.prototipo_bg_color ?? "#000000";
+  const prototypeIsLight = prototypeBg.toLowerCase() === "#ffffff";
+
+  let bgToggle = 0;
+  const nextBg = () => SECTION_BG_PALETTE[bgToggle++ % SECTION_BG_PALETTE.length];
 
   return (
     <main className="bg-bg text-navy">
@@ -214,9 +321,13 @@ export function CaseBody({ c }: { c: Case }) {
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.9, delay: 0.2 }}
-              className="mx-auto w-full max-w-[300px]"
+              className={c.hero_device === "laptop" ? "mx-auto w-full max-w-[700px]" : "mx-auto w-full max-w-[300px]"}
             >
-              <Phone3D screens={screens} />
+              {c.hero_device === "laptop" ? (
+                <MacbookScreens screens={screens} />
+              ) : (
+                <Phone3D screens={screens} />
+              )}
             </motion.div>
           ) : (
             c.capa_url && (
@@ -249,29 +360,78 @@ export function CaseBody({ c }: { c: Case }) {
         </motion.div>
       </section>
 
-      {/* O problema */}
-      {c.problema_texto && (
-        <section className="relative bg-bg px-6 py-32">
-          <SectionSeam color={nextSeam()} />
-          <Reveal>
-            <p className="mx-auto max-w-3xl text-center text-3xl font-black leading-tight text-navy sm:text-5xl">
-              {highlightProblemText(c.problema_texto)}
-            </p>
-          </Reveal>
-        </section>
-      )}
+      {/* O problema — com `problema_bg_url` (ex. eSIM Vivo), vira duas
+          colunas: frase à esquerda, imagem cobrindo a altura toda do bloco,
+          alinhada à direita (posicionamento absoluto — a imagem não segue o
+          fluxo/grid, só "gruda" nas 4 bordas verticais da seção via
+          `inset-y-0 right-0`, então acompanha a altura real do bloco mesmo
+          com texto de tamanho variável) sobre `problema_bg_color`; sem
+          `problema_bg_url`, cai pro layout centrado de sempre sobre um tom
+          da paleta de fundo rotativa. */}
+      {c.problema_texto &&
+        (c.problema_bg_url ? (
+          <section
+            className="relative overflow-hidden px-6 py-32"
+            style={{ backgroundColor: c.problema_bg_color ?? "#f6f6f6" }}
+          >
+            <div className="absolute inset-y-0 right-0 hidden lg:block">
+              {PROBLEMA_BG_NATURAL[c.slug] ? (
+                <Image
+                  src={c.problema_bg_url}
+                  alt=""
+                  width={PROBLEMA_BG_NATURAL[c.slug].width}
+                  height={PROBLEMA_BG_NATURAL[c.slug].height}
+                  className="h-full w-auto object-cover"
+                />
+              ) : (
+                <div className="relative h-full w-[40vw]">
+                  <Image src={c.problema_bg_url} alt="" fill className="object-cover" sizes="40vw" />
+                </div>
+              )}
+            </div>
+
+            <Reveal>
+              <div className="relative mx-auto max-w-6xl lg:pr-[48%]">
+                <SectionEyebrow light justify="justify-start">
+                  O desafio
+                </SectionEyebrow>
+                <p className="mt-5 max-w-lg text-2xl font-black leading-tight text-[#1a1a1a] sm:text-4xl">
+                  {highlightProblemText(c.problema_texto, "text-[#7e20cf]")}
+                </p>
+              </div>
+            </Reveal>
+
+            {/* No mobile a imagem não cabe "colada nas bordas" fazendo
+                sentido (não há altura de bloco fixa pra preencher) — cai pro
+                tratamento simples de sempre, abaixo do texto. */}
+            <div className="relative mx-auto mt-10 aspect-[3/4] w-full max-w-sm lg:hidden">
+              <Image
+                src={c.problema_bg_url}
+                alt=""
+                fill
+                className="object-contain object-right"
+                sizes="80vw"
+              />
+            </div>
+          </section>
+        ) : (
+          <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
+            <Reveal>
+              <p className="mx-auto max-w-3xl text-center text-3xl font-black leading-tight text-navy sm:text-5xl">
+                {highlightProblemText(c.problema_texto, "text-coral")}
+              </p>
+            </Reveal>
+          </section>
+        ))}
 
       {/* Etapas — o fluxo do produto (ex. Sulamérica: Pedido → Match →
           Confirmado) e o processo de design (ex. Imersão → Definição →
           Prototipação) são coisas diferentes e merecem títulos diferentes;
           nunca reaproveitar "A solução / Como funciona" pra um processo. */}
       {hasStepFlow && (
-        <section className="relative bg-surface px-6 py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
-              {c.steps_eyebrow ?? "A solução"}
-            </p>
+            <SectionEyebrow>{c.steps_eyebrow ?? "A solução"}</SectionEyebrow>
             <h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black text-navy sm:text-5xl">
               {c.steps_title ?? "Como funciona"}
             </h2>
@@ -299,54 +459,96 @@ export function CaseBody({ c }: { c: Case }) {
         </section>
       )}
 
-      {/* Resultados — anel animado pros valores percentuais; os demais
-          (qualitativos, ex. "redução de chamadas", ou contáveis, ex. "8
-          designers liderados") entram como linha de destaque logo abaixo, ou
-          como o grid de contador de sempre quando não há nenhum percentual. */}
-      {hasStats &&
-        (percentStats.length > 0 ? (
-          <section className="animated-gradient relative px-6 py-32">
-            <div className="absolute inset-0 bg-black/50" />
-            <div className="relative">
-              <Reveal>
-                <p className="text-center text-sm font-bold uppercase tracking-widest text-white/80">
-                  Resultados
-                </p>
-                <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
-                  O que mudou de verdade
-                </h2>
-              </Reveal>
-
-              <div className="mx-auto mt-16 flex max-w-3xl flex-wrap items-start justify-center gap-16">
-                {percentStats.map((d) => {
-                  const percent = Math.abs(parseInt(d.valor, 10));
-                  return (
-                    <StatRing
-                      key={d.label}
-                      value={d.valor}
-                      percent={Number.isFinite(percent) ? percent : 0}
-                      label={d.label}
-                      color="#66fcf1"
-                      icon={d.icon ? ICONS[d.icon] : undefined}
-                    />
-                  );
-                })}
-              </div>
-
-              {otherStats.map((d, i) => (
-                <Reveal key={d.label} delay={0.2 + i * 0.1}>
-                  <p className="mx-auto mt-12 max-w-md text-center font-bold text-white">
-                    + {d.label.toLowerCase()}: {d.valor}
-                  </p>
-                </Reveal>
-              ))}
-            </div>
-          </section>
-        ) : (
-          <section className="relative border-y border-border bg-surface/40 px-6 py-20">
-            <SectionSeam color={nextSeam()} />
+      {/* Resultados — anel pra %, gauge pra NPS, card de número grande pro
+          resto (texto/tempo), donut pra distribuição por categoria — todos
+          no mesmo card transparente (`rounded-2xl border-white/15 bg-white/5`),
+          numa grade que estica cada card até a altura da linha (visual
+          "blocado", em vez de peças soltas de tamanhos diferentes). Cai pro
+          grid de contador simples de sempre quando não há nenhum %, NPS ou
+          gráfico de pizza (só cards de texto/contagem). */}
+      {hasFancyResults ? (
+        <section className="animated-gradient relative px-6 py-32">
+          <div className="absolute inset-0 bg-black/50" />
+          <div className="relative">
             <Reveal>
-              <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Resultados</p>
+              <SectionEyebrow>Resultados</SectionEyebrow>
+              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
+                O que mudou de verdade
+              </h2>
+            </Reveal>
+
+            {/* Menu de abas — só aparece quando o case usa `grupo` em mais de
+                um destaque/gráfico (ver `DEFAULT_RESULT_GROUP`). Cases com
+                poucos resultados (a maioria) nunca setam `grupo`, então tudo
+                cai no mesmo grupo implícito e esse menu simplesmente não
+                renderiza — comportamento idêntico ao de antes desse campo
+                existir. Existe pra casos como a Sulamérica, com resultados
+                demais (eficiência + NPS antes/depois + 2 gráficos de pizza)
+                pra mostrar tudo de uma vez sem virar uma parede de dados. */}
+            {resultGroups.length > 1 && (
+              <Reveal delay={0.1}>
+                <div className="mx-auto mt-10 flex max-w-3xl flex-wrap items-center justify-center gap-3">
+                  {resultGroups.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setActiveGroup(g)}
+                      className={`rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-widest transition-colors ${
+                        activeGroup === g
+                          ? "border-white bg-white text-black"
+                          : "border-white/30 text-white/70 hover:border-white/60 hover:text-white"
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </Reveal>
+            )}
+
+            <Reveal delay={0.15}>
+              <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {visibleResultItems.map((item) => (
+                  <div
+                    key={item.key}
+                    className="flex h-full flex-col items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-8 text-center backdrop-blur-sm"
+                  >
+                    {item.kind === "ring" &&
+                      (() => {
+                        const percent = Math.abs(parseInt(item.data.valor, 10));
+                        return (
+                          <StatRing
+                            value={item.data.valor}
+                            percent={Number.isFinite(percent) ? percent : 0}
+                            label={item.data.label}
+                            color="#66fcf1"
+                            icon={item.data.icon ? ICONS[item.data.icon] : undefined}
+                          />
+                        );
+                      })()}
+                    {item.kind === "nps" && <NpsGauge value={parseInt(item.data.valor, 10)} label={item.data.label} />}
+                    {item.kind === "card" && (
+                      <>
+                        <p className="text-3xl font-black text-white sm:text-4xl">{item.data.valor}</p>
+                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-white/80">
+                          {item.data.label}
+                        </p>
+                      </>
+                    )}
+                    {item.kind === "pie" && (
+                      <PieChart title={item.data.title} slices={item.data.slices} total={item.data.total} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      ) : (
+        hasStats && (
+          <section className="relative border-y border-border px-6 py-20" style={{ backgroundColor: nextBg() }}>
+            <Reveal>
+              <SectionEyebrow>Resultados</SectionEyebrow>
               <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
                 O que mudou de verdade
               </h2>
@@ -373,7 +575,8 @@ export function CaseBody({ c }: { c: Case }) {
               })}
             </div>
           </section>
-        ))}
+        )
+      )}
 
       {/* Conteúdo — narrativa longa (objetivo, processo, papel), separada da
           frase de impacto curta da seção "O problema" acima. */}
@@ -383,13 +586,23 @@ export function CaseBody({ c }: { c: Case }) {
         </Reveal>
       )}
 
-      {/* Protótipo Figma — largura total, sem moldura, sem o rodapé do Figma */}
+      {/* Protótipo — largura total, sem moldura, sem rodapé de ferramenta.
+          Fundo fixo em `prototipo_bg_color` (não entra na rotação de
+          `nextBg()`) — deve ser a MESMA cor de fundo do próprio protótipo
+          embutido (preto puro pro canvas do Figma, branco pra um protótipo
+          com UI branca, ex. eSIM Vivo), pra fundir com o embed em vez de
+          criar uma borda visível entre "moldura do site" e "conteúdo do
+          protótipo". Sem `prototipo_bg_color` definido, cai pro preto (era
+          o único caso até agora — Figma). */}
       {c.figma_url && (
-        <section className="relative bg-bg px-6 py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative px-6 py-32" style={{ backgroundColor: prototypeBg }}>
           <Reveal>
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Protótipo</p>
-            <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
+            <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
+            <h2
+              className={`mx-auto mt-3 max-w-xl text-center text-4xl font-black sm:text-5xl ${
+                prototypeIsLight ? "text-[#1a1a1a]" : "text-navy"
+              }`}
+            >
               Explore o fluxo completo
             </h2>
           </Reveal>
@@ -407,7 +620,9 @@ export function CaseBody({ c }: { c: Case }) {
                 href={c.figma_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2.5 text-sm font-bold text-navy transition-colors hover:border-coral hover:text-coral"
+                className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-bold transition-colors hover:border-coral hover:text-coral ${
+                  prototypeIsLight ? "border-[#1a1a1a]/20 text-[#1a1a1a]" : "border-border text-navy"
+                }`}
               >
                 {isFigmaUrl(c.figma_url) ? <Figma size={16} /> : <ArrowUpRight size={16} />}
                 {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
@@ -419,26 +634,28 @@ export function CaseBody({ c }: { c: Case }) {
 
       {/* Telas em destaque — esteira contínua */}
       {screens.length > 0 && (
-        <section className="relative overflow-hidden bg-bg py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative overflow-hidden py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
-            <p className="px-6 text-center text-sm font-bold uppercase tracking-widest text-coral">O produto</p>
+            <SectionEyebrow className="px-6">O produto</SectionEyebrow>
             <h2 className="mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black text-navy sm:text-5xl">
               Telas em destaque
             </h2>
           </Reveal>
           <div className="mt-14">
-            <ScreenMarquee screens={screens} />
+            {c.hero_device === "laptop" ? (
+              <DesktopScreenShowcase screens={screens} />
+            ) : (
+              <ScreenMarquee screens={screens} />
+            )}
           </div>
         </section>
       )}
 
       {/* Style guide */}
       {hasStyleGuide && (
-        <section className="relative bg-surface px-6 py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Style guide</p>
+            <SectionEyebrow>Style guide</SectionEyebrow>
             <h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black text-navy sm:text-5xl">
               A linguagem visual
             </h2>
@@ -483,13 +700,30 @@ export function CaseBody({ c }: { c: Case }) {
           `position: sticky`, e overflow non-visible em qualquer ancestral
           quebra o efeito (documentado na skill tpointic-wow-case). */}
       {c.gallery.length > 0 ? (
-        <section className="relative bg-surface py-32">
-          <SectionSeam color={nextSeam()} />
+        <section
+          className="relative py-32"
+          style={{ backgroundColor: galleryIsLight ? "#ffffff" : nextBg() }}
+        >
           <Reveal>
-            <p className="px-6 text-center text-sm font-bold uppercase tracking-widest text-coral">De perto</p>
-            <h2 className="mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black text-navy sm:text-5xl">
+            <SectionEyebrow light={galleryIsLight} className="px-6">
+              De perto
+            </SectionEyebrow>
+            <h2
+              className={`mx-auto mt-3 max-w-xl px-6 text-center text-4xl font-black sm:text-5xl ${
+                galleryIsLight ? "text-[#1a1a1a]" : "text-navy"
+              }`}
+            >
               {c.titulo}
             </h2>
+            {c.gallery_intro && (
+              <p
+                className={`mx-auto mt-6 max-w-2xl px-6 text-center text-lg leading-relaxed ${
+                  galleryIsLight ? "text-[#4a4a4a]" : "text-slate"
+                }`}
+              >
+                {c.gallery_intro}
+              </p>
+            )}
           </Reveal>
 
           <div className="relative mt-16">
@@ -529,41 +763,41 @@ export function CaseBody({ c }: { c: Case }) {
         ))
       )}
 
-      {/* Vídeo */}
+      {/* Vídeo — texto à esquerda, vídeo à direita (não full-bleed: em
+          telas grandes um vídeo 100% de largura fica "estourado" demais). */}
       {c.video_url && (
-        <section className="relative bg-bg px-6 py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Vídeo</p>
-            <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
-              Eu explico esse case
-            </h2>
-          </Reveal>
-          <Reveal delay={0.15}>
-            <Bleed className="mt-14">
-              {c.video_url.endsWith(".mp4") ? (
-                <video src={c.video_url} controls className="w-full" preload="metadata" />
-              ) : (
-                <div className="relative aspect-video">
-                  <iframe
-                    src={c.video_url}
-                    className="absolute inset-0 h-full w-full"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              )}
-            </Bleed>
+            <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+              <div className="text-center lg:text-left">
+                <SectionEyebrow justify="justify-center lg:justify-start">Vídeo</SectionEyebrow>
+                <h2 className="mt-3 text-4xl font-black text-navy sm:text-5xl">Eu explico esse case</h2>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-border shadow-2xl">
+                {c.video_url.endsWith(".mp4") ? (
+                  <video src={c.video_url} controls className="w-full" preload="metadata" />
+                ) : (
+                  <div className="relative aspect-video">
+                    <iframe
+                      src={c.video_url}
+                      className="absolute inset-0 h-full w-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           </Reveal>
         </section>
       )}
 
       {/* Slides */}
       {c.slides_url && (
-        <section className="relative bg-bg px-6 py-32">
-          <SectionSeam color={nextSeam()} />
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">Apresentação</p>
+            <SectionEyebrow>Apresentação</SectionEyebrow>
             <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
               Veja a apresentação completa
             </h2>
