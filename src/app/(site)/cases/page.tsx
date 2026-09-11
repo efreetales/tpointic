@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
 import { getCaseBgColor } from "@/lib/case-colors";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Cases — TPointic",
+  title: `Cases — ${SITE_NAME}`,
   description: "Portfólio de cases de Service Design, UX Research e UX Design de Tales Pereira.",
 };
 

@@ -8,9 +8,10 @@ import {
   Target,
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Serviços — TPointic",
+  title: `Serviços — ${SITE_NAME}`,
   description: "Frentes de atuação de Tales Pereira: Service Design, UX Research, Mentoring, Design Leadership, UX Design e Product Owner.",
 };
 

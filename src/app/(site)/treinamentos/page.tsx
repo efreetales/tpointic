@@ -3,12 +3,13 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
+import { SITE_NAME } from "@/lib/site";
 
 const MASTERCLASS_ILUSTRACAO =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
 
 export const metadata: Metadata = {
-  title: "Treinamentos — TPointic",
+  title: `Treinamentos — ${SITE_NAME}`,
   description:
     "Masterclass Os 5 Fundamentos do Design Thinking, com Tales Pereira.",
 };

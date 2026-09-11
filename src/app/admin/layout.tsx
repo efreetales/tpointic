@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { SITE_NAME } from "@/lib/site";
 import { signOut } from "./actions";
 
 export default async function AdminLayout({
@@ -21,7 +22,7 @@ export default async function AdminLayout({
       <header className="border-b border-border bg-white">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/admin" className="text-lg font-black text-navy">
-            TPointic Admin
+            {SITE_NAME} Admin
           </Link>
           <nav className="flex items-center gap-6 text-sm font-bold text-slate">
             <Link href="/admin" className="hover:text-coral">

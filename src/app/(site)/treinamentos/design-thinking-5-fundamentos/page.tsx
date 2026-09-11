@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { getCursoBySlug, getTurmaAberta } from "@/lib/turmas";
 import { Reveal } from "@/components/reveal";
 import { MatriculaDrawer } from "@/components/matricula-drawer";
+import { SITE_NAME } from "@/lib/site";
 import {
   ArrowUpRight,
   CheckCircle,
@@ -42,7 +43,7 @@ const DEPOIMENTOS_ALUNOS = [
 ];
 
 export const metadata: Metadata = {
-  title: "Os 5 Fundamentos do Design Thinking — TPointic",
+  title: `Os 5 Fundamentos do Design Thinking — ${SITE_NAME}`,
   description:
     "Masterclass ao vivo, online e colaborativa com Tales Pereira. Pague quanto quiser.",
 };

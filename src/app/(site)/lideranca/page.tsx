@@ -12,9 +12,10 @@ import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
 import { StatRing } from "@/components/stat-ring";
 import { AnimatedBar } from "@/components/animated-bar";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Liderança — TPointic",
+  title: `Liderança — ${SITE_NAME}`,
   description:
     "Como Tales Pereira liderou 8 designers no Mercado Livre a 92% de engajamento e 88% de excelência no Check Survey 2023.",
 };

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Star } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Sobre — TPointic",
+  title: `Sobre — ${SITE_NAME}`,
   description: "Conheça Tales Pereira, Gestor de Design, Service Designer e UX Researcher.",
 };
 

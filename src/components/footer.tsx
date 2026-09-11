@@ -1,10 +1,11 @@
 import { Mail, Telephone, Linkedin } from "@mynaui/icons-react";
+import { SITE_NAME } from "@/lib/site";
 
 export function Footer() {
   return (
     <footer className="border-t border-border">
       <div className="mx-auto flex max-w-5xl flex-col gap-4 px-6 py-10 text-sm text-gray sm:flex-row sm:items-center sm:justify-between">
-        <p>&copy; {new Date().getFullYear()} TPointic — Tales Pereira</p>
+        <p>&copy; {new Date().getFullYear()} {SITE_NAME} — Tales Pereira</p>
         <div className="flex flex-wrap gap-x-6 gap-y-2">
           <a
             href="mailto:contatodotales@gmail.com"

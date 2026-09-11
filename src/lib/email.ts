@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { SITE_NAME } from "@/lib/site";
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -6,30 +7,37 @@ const resend = process.env.RESEND_API_KEY
 
 const REPLY_TO = "contatodotales@gmail.com";
 
-// Same mark as `src/components/logo.tsx`, inlined as a data-URI PNG-less SVG
-// since email clients can't render a React component — Gmail and most major
-// clients do support inline SVG images via data URIs.
-const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28"><path d="M100 100H0V0H100V100ZM34.25 40.25V74.75H43.25V40.25H34.25ZM66.75 25.25V34.25H72.25V52.25H50.25V61.25H81.25V25.25H66.75ZM18.75 25.25V34.25H59.75V25.25H18.75Z" fill="#EF8354"/></svg>`;
-const LOGO_DATA_URI = `data:image/svg+xml;base64,${Buffer.from(LOGO_SVG).toString("base64")}`;
+// Static file in `public/` (not an inline SVG data URI) — Outlook and most
+// corporate mail filters strip data-URI images as a security heuristic,
+// which is why the old inline logo showed broken in client previews.
+const LOGO_URL = "https://talespereira.com/email-logo.png";
 
-// Shared branded shell for every transactional email — a bare "TPointic"
-// label with no layout looked unfinished and hurt deliverability as much as
-// it hurt the impression. Keep markup table-free but simple (no flex/grid)
-// since Outlook's renderer ignores most modern CSS.
+// Shared branded shell for every transactional email, mirroring the same
+// mark + brand wordmark lockup used in the site header (`nav.tsx`) so the
+// email reads as the same product. Keep markup table-free but simple (no
+// flex/grid) since Outlook's renderer ignores most modern CSS.
 function emailShell(bodyHtml: string) {
   return `
   <div style="background:#f4f4f5;padding:32px 16px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;">
     <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eaeaec;">
-      <div style="padding:28px 32px 0;">
-        <img src="${LOGO_DATA_URI}" width="28" height="28" alt="TPointic" style="display:block;margin-bottom:10px;" />
-        <p style="margin:0;color:#EF8354;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;font-size:12px;">TPointic</p>
+      <div style="padding:28px 32px 24px;border-bottom:1px solid #eaeaec;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td style="padding-right:10px;vertical-align:middle;">
+              <img src="${LOGO_URL}" width="32" height="32" alt="${SITE_NAME}" style="display:block;border-radius:8px;" />
+            </td>
+            <td style="vertical-align:middle;">
+              <span style="color:#2D3142;font-weight:800;font-size:18px;">${SITE_NAME}</span>
+            </td>
+          </tr>
+        </table>
       </div>
-      <div style="padding:16px 32px 32px;color:#2D3142;font-size:15px;line-height:1.6;">
+      <div style="padding:28px 32px;color:#2D3142;font-size:15px;line-height:1.6;">
         ${bodyHtml}
       </div>
       <div style="padding:20px 32px;background:#fafafa;border-top:1px solid #eaeaec;color:#8a8a8a;font-size:12px;line-height:1.6;">
-        Tales Pereira · Gestor de Design, Service Designer e UX Researcher<br/>
-        <a href="https://talespereira.com" style="color:#8a8a8a;">talespereira.com</a>
+        <strong style="color:#2D3142;">${SITE_NAME}</strong> · Design Thinking com Tales Pereira<br/>
+        <a href="https://talespereira.com" style="color:#EF8354;text-decoration:none;">talespereira.com</a>
       </div>
     </div>
   </div>`;
@@ -51,7 +59,7 @@ export async function sendNotificacaoTurma({
     return { skipped: true, enviados: 0 };
   }
 
-  const from = process.env.RESEND_FROM_EMAIL ?? "TPointic <matriculas@talespereira.com>";
+  const from = process.env.RESEND_FROM_EMAIL ?? `${SITE_NAME} <matriculas@talespereira.com>`;
   const html = emailShell(`
     <div style="white-space:pre-line;">${corpo}</div>
     <p style="margin-top:24px;margin-bottom:0;">Tales Pereira</p>
@@ -123,7 +131,7 @@ Até lá!
 Tales Pereira`;
 
   const { data, error } = await resend.emails.send({
-    from: process.env.RESEND_FROM_EMAIL ?? "TPointic <matriculas@talespereira.com>",
+    from: process.env.RESEND_FROM_EMAIL ?? `${SITE_NAME} <matriculas@talespereira.com>`,
     to,
     subject: "Matrícula confirmada — Os 5 Fundamentos do Design Thinking",
     html,

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Mail, Telephone, Linkedin, Compass } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Contato — TPointic",
+  title: `Contato — ${SITE_NAME}`,
   description: "Fale com Tales Pereira.",
 };
 

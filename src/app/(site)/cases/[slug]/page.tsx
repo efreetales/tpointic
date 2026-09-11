@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCaseBySlug } from "@/lib/cases";
+import { SITE_NAME } from "@/lib/site";
 import { CaseBody } from "./case-body";
 
 type Props = {
@@ -12,7 +13,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const c = await getCaseBySlug(slug);
   if (!c) return {};
   return {
-    title: `${c.titulo} — TPointic`,
+    title: `${c.titulo} — ${SITE_NAME}`,
     description: c.resumo ?? undefined,
   };
 }

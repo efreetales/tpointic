@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
+import { SITE_NAME } from "@/lib/site";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -9,7 +10,7 @@ const nunito = Nunito({
 });
 
 export const metadata: Metadata = {
-  title: "TPointic — Tales Pereira",
+  title: `${SITE_NAME} — Tales Pereira`,
   description:
     "Portfólio de Design e Masterclass de Design Thinking com Tales Pereira.",
 };

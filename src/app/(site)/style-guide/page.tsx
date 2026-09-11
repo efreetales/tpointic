@@ -12,10 +12,11 @@ import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
 import { StatRing } from "@/components/stat-ring";
 import { Logo } from "@/components/logo";
+import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Style Guide — TPointic",
-  description: "Design system do site TPointic: cores, tipografia, componentes e animações.",
+  title: `Style Guide — ${SITE_NAME}`,
+  description: `Design system do site ${SITE_NAME}: cores, tipografia, componentes e animações.`,
 };
 
 const COLORS = [
@@ -45,7 +46,7 @@ export default function StyleGuidePage() {
               Design System
             </p>
             <h1 className="mx-auto mt-2 max-w-2xl text-5xl font-black text-navy sm:text-6xl">
-              Style Guide TPointic
+              Style Guide {SITE_NAME}
             </h1>
             <p className="mx-auto mt-4 max-w-lg text-slate">
               Cores, tipografia, componentes e animações usados no site
@@ -199,7 +200,7 @@ export default function StyleGuidePage() {
             <Reveal>
               <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-6">
                 <Logo className="h-10 w-10 text-coral" />
-                <span className="text-lg font-black text-navy">TPointic</span>
+                <span className="text-lg font-black text-navy">{SITE_NAME}</span>
               </div>
             </Reveal>
             <Reveal delay={0.05}>

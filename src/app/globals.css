@@ -82,6 +82,19 @@ body {
   animation: gradient-shift 12s ease-in-out infinite;
 }
 
+@keyframes logo-glow-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 18px rgba(102, 252, 241, 0.55)) drop-shadow(0 0 4px rgba(102, 252, 241, 0.8));
+  }
+  50% {
+    filter: drop-shadow(0 0 34px rgba(102, 252, 241, 0.85)) drop-shadow(0 0 8px rgba(102, 252, 241, 1));
+  }
+}
+
+.animate-logo-glow {
+  animation: logo-glow-pulse 3.2s ease-in-out infinite;
+}
+
 @keyframes marquee-up {
   from {
     transform: translateY(0);

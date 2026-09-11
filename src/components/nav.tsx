@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Menu, X } from "@mynaui/icons-react";
 import { Logo } from "@/components/logo";
+import { SITE_NAME } from "@/lib/site";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -25,7 +26,7 @@ export function Nav() {
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2 text-lg font-black text-navy">
           <Logo className="h-8 w-8 text-coral" />
-          TPointic
+          {SITE_NAME}
         </Link>
 
         <ul className="hidden items-center gap-x-7 text-sm font-bold text-slate sm:flex">

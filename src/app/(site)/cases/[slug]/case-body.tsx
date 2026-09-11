@@ -39,6 +39,7 @@ import { Phone3D } from "@/components/phone-3d";
 import { MacbookScreens } from "@/components/macbook-screens";
 import { Bleed } from "@/components/bleed";
 import type { Case, Destaque, PieChartData } from "@/lib/cases";
+import { SITE_NAME } from "@/lib/site";
 
 // Shared icon dictionary — used both by `steps` and `destaques.icon`, keyed
 // by a plain string stored in the DB so content can reference an icon
@@ -339,7 +340,7 @@ export function CaseBody({ c }: { c: Case }) {
             </Link>
             {c.cliente && (
               <p className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-white/80">
-                {c.cliente} × TPointic
+                {c.cliente} × {SITE_NAME}
               </p>
             )}
             <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-black leading-[1.02] text-white sm:text-7xl lg:mx-0">
@@ -1024,7 +1025,7 @@ export function CaseBody({ c }: { c: Case }) {
         <div className="relative">
           <Reveal>
             <p className="text-sm font-bold uppercase tracking-widest text-white/70">
-              Case · TPointic
+              Case · {SITE_NAME}
             </p>
             <h2 className="mx-auto mt-3 max-w-lg text-4xl font-black text-white sm:text-5xl">
               Gostou desse case?
