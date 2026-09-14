@@ -19,7 +19,7 @@ const LINKS = [
 // Páginas com hero full-bleed (vídeo de fundo, sem card/moldura) em vez do
 // fundo escuro padrão do site — o header precisa nascer transparente/claro
 // sobre elas e virar sólido normal assim que o usuário rola além do hero.
-const TRANSPARENT_HERO_PATHS = ["/", "/cases"];
+const TRANSPARENT_HERO_PATHS = ["/", "/cases", "/sobre"];
 
 export function Nav() {
   const pathname = usePathname();
