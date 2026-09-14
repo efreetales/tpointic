@@ -62,19 +62,18 @@ const ICONS: Record<string, ComponentType<{ size?: number }>> = {
   heart: Heart,
 };
 
-// Shared dark palette rotated via `nextBg()` (below) across every flat
+// Shared pastel palette rotated via `nextBg()` (below) across every flat
 // section, including the sticky-parallax gallery panels — one continuous
 // rotation, not two separate systems, is what makes the gallery header and
 // its first panel share the same color instead of clashing (see the
 // gallery section's own comment for why that matters). Distinct background
-// colors are what actually separates one section from the next; on the
-// near-black `bg-bg`/`bg-surface` tones (#0a0a0a/#141414) alternating
-// between just those two read as "one big black block" no matter how much
-// padding separates them. A glow/seam effect at the section boundary was
-// tried before and dropped — didn't read as a strong enough separator and
-// got in the way visually. A gallery item can override its own panel via
-// `gallery[].bg`.
-const SECTION_BG_PALETTE = ["#0a0a0a", "#12102a", "#0a1f1d", "#1a0f1f", "#141420"];
+// colors are what actually separates one section from the next; alternating
+// between just `bg-bg`/`bg-surface` reads as "one big flat block" no matter
+// how much padding separates them. A glow/seam effect at the section
+// boundary was tried before and dropped — didn't read as a strong enough
+// separator and got in the way visually. A gallery item can override its
+// own panel via `gallery[].bg`.
+const SECTION_BG_PALETTE = ["#efe9fb", "#fdeaf3", "#e6f5f0", "#eef2fb", "#fdf3e3"];
 
 // Fallback bucket for any `destaques`/`pie_charts` item without its own
 // `grupo` — every item lands in this one implicit group, so the tab menu
@@ -166,10 +165,10 @@ function renderConteudo(text: string, videoAnchorRef?: RefObject<HTMLLIElement |
                 className="flex gap-3 text-lg leading-relaxed text-navy"
               >
                 <span className="mt-1 text-coral">—</span>
-                {/* Mesma cor da linha do ConnectorLine (#66fcf1) + negrito —
+                {/* Mesma cor da linha do ConnectorLine (token coral) + negrito —
                     reforça visualmente que ESTE bullet específico é o que
                     está linkado ao vídeo ao lado, não só a linha sozinha. */}
-                <span className={isVideoAnchor ? "font-bold text-[#66fcf1]" : undefined}>{label}</span>
+                <span className={isVideoAnchor ? "font-bold text-coral" : undefined}>{label}</span>
               </li>
             );
           })}
@@ -197,9 +196,12 @@ function renderConteudo(text: string, videoAnchorRef?: RefObject<HTMLLIElement |
 // prototype's white background was nearly unreadable). The pill's own
 // tinted background+border gives it contrast against ANY section
 // background, light or dark, so it doesn't need to match the page bg at
-// all. `light` picks which brand color: purple (`#7e20cf`) for a light
-// section background, the site's standard cyan (`#66fcf1`) for a dark one —
-// pick based on the actual background color behind it, not the case.
+// all. `light` picks which brand color: purple (`#7e20cf`, a fixed literal —
+// this branch is only used against a section with its own fixed light bg,
+// independent of the site theme) for a light section background, the site's
+// own accent token (adapts light/dark automatically) for everything else.
+// `color-mix()` (not string-concatenated hex+alpha) because the token is a
+// CSS var, not a literal hex string.
 function SectionEyebrow({
   children,
   light = false,
@@ -216,12 +218,16 @@ function SectionEyebrow({
    * horizontal padding when the eyebrow sits outside a padded container). */
   className?: string;
 }) {
-  const color = light ? "#7e20cf" : "#66fcf1";
+  const color = light ? "#7e20cf" : "var(--color-coral)";
   return (
     <div className={`flex ${justify} ${className}`}>
       <span
         className="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-bold uppercase tracking-widest"
-        style={{ borderColor: `${color}4d`, backgroundColor: `${color}1a`, color }}
+        style={{
+          borderColor: `color-mix(in srgb, ${color} 30%, transparent)`,
+          backgroundColor: `color-mix(in srgb, ${color} 10%, transparent)`,
+          color,
+        }}
       >
         {children}
       </span>
@@ -320,7 +326,7 @@ export function CaseBody({ c }: { c: Case }) {
           quando `hero_title` estiver preenchido. */}
       <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-24">
         <div className="animated-gradient absolute inset-0" />
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-bg/30" />
 
         <div
           className={`relative z-10 mx-auto grid max-w-6xl items-center gap-12 ${
@@ -335,25 +341,25 @@ export function CaseBody({ c }: { c: Case }) {
               screens.length > 0 || c.capa_url ? "text-center lg:text-left" : "mx-auto max-w-3xl text-center"
             }
           >
-            <Link href="/cases" className="text-sm font-bold text-white/70 transition-colors hover:text-white">
+            <Link href="/cases" className="text-sm font-bold text-slate transition-colors hover:text-navy">
               ← Voltar para cases
             </Link>
             {c.cliente && (
-              <p className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-white/80">
+              <p className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-slate">
                 {c.cliente} × {SITE_NAME}
               </p>
             )}
-            <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-black leading-[1.02] text-white sm:text-7xl lg:mx-0">
+            <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-black leading-[1.02] text-navy sm:text-7xl lg:mx-0">
               {c.hero_title ?? c.titulo}
               {c.hero_accent && (
                 <>
                   <br />
-                  <span className="text-[#66fcf1]">{c.hero_accent}</span>
+                  <span className="text-coral">{c.hero_accent}</span>
                 </>
               )}
             </h1>
             {c.resumo && (
-              <p className="mx-auto mt-8 max-w-lg text-lg text-white/85 lg:mx-0">{c.resumo}</p>
+              <p className="mx-auto mt-8 max-w-lg text-lg text-slate lg:mx-0">{c.resumo}</p>
             )}
           </motion.div>
 
@@ -398,7 +404,7 @@ export function CaseBody({ c }: { c: Case }) {
                 initial={{ opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.9, delay: 0.2 }}
-                className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-3xl border border-white/10 shadow-2xl"
+                className="relative mx-auto aspect-[4/3] w-full max-w-lg overflow-hidden rounded-3xl border border-border shadow-2xl"
               >
                 <Image
                   src={c.capa_url}
@@ -417,7 +423,7 @@ export function CaseBody({ c }: { c: Case }) {
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 1.6, repeat: Infinity }}
-          className="absolute bottom-10 z-10 text-white/70"
+          className="absolute bottom-10 z-10 text-slate"
         >
           <ArrowDown size={28} />
         </motion.div>
@@ -631,7 +637,7 @@ export function CaseBody({ c }: { c: Case }) {
                   >
                     {item.caption && (
                       <div className="flex flex-1 items-center justify-center px-6 py-10 text-center lg:w-1/2 lg:flex-none lg:justify-end lg:px-16 lg:text-left">
-                        <p className="max-w-md text-2xl font-black text-white sm:text-4xl">{item.caption}</p>
+                        <p className="max-w-md text-2xl font-black text-navy sm:text-4xl">{item.caption}</p>
                       </div>
                     )}
                     <div className={`relative flex-1 lg:flex-none ${item.caption ? "lg:w-1/2" : "lg:w-full"}`}>
@@ -734,9 +740,13 @@ export function CaseBody({ c }: { c: Case }) {
         <section className="relative px-6 pt-16" style={{ backgroundColor: prototypeBg }}>
           <Reveal>
             <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
+            {/* `prototypeBg` é a cor de fundo do PRÓPRIO embed (Figma/etc.),
+                independente do tema do site — texto sempre literal
+                preto/branco aqui, nunca os tokens `text-navy`/`text-slate`
+                (que seguem o tema do site, não o fundo fixo desta seção). */}
             <h2
               className={`mx-auto mt-3 max-w-xl text-center text-4xl font-black sm:text-5xl ${
-                prototypeIsLight ? "text-[#1a1a1a]" : "text-navy"
+                prototypeIsLight ? "text-[#1a1a1a]" : "text-white"
               }`}
             >
               Explore o fluxo completo
@@ -767,9 +777,9 @@ export function CaseBody({ c }: { c: Case }) {
           className="group relative flex items-center justify-center overflow-hidden px-6 py-14 text-center"
         >
           <div className="animated-gradient absolute inset-0" />
-          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
+          <div className="absolute inset-0 bg-bg/30 transition-colors group-hover:bg-bg/10" />
           <Reveal>
-            <span className="relative inline-flex items-center gap-3 text-xl font-black text-white sm:text-2xl">
+            <span className="relative inline-flex items-center gap-3 text-xl font-black text-navy sm:text-2xl">
               {isFigmaUrl(c.figma_url) ? <Figma size={22} className="shrink-0" /> : null}
               {isFigmaUrl(c.figma_url) ? "Abrir no Figma" : "Abrir protótipo"}
               <ArrowUpRight
@@ -863,11 +873,11 @@ export function CaseBody({ c }: { c: Case }) {
           caminho visual à parte. */}
       {hasStats || c.pie_charts.length > 0 ? (
         <section className="animated-gradient relative px-6 py-32">
-          <div className="absolute inset-0 bg-black/50" />
+          <div className="absolute inset-0 bg-bg/40" />
           <div className="relative">
             <Reveal>
               <SectionEyebrow>Resultados</SectionEyebrow>
-              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
+              <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-navy sm:text-5xl">
                 O que mudou de verdade
               </h2>
             </Reveal>
@@ -890,8 +900,8 @@ export function CaseBody({ c }: { c: Case }) {
                       onClick={() => setActiveGroup(g)}
                       className={`rounded-full border px-5 py-2 text-sm font-bold uppercase tracking-widest transition-colors ${
                         activeGroup === g
-                          ? "border-white bg-white text-black"
-                          : "border-white/30 text-white/70 hover:border-white/60 hover:text-white"
+                          ? "border-coral bg-coral text-coral-ink"
+                          : "border-border text-slate hover:border-coral hover:text-coral"
                       }`}
                     >
                       {g}
@@ -906,7 +916,7 @@ export function CaseBody({ c }: { c: Case }) {
                 {visibleResultItems.map((item) => (
                   <div
                     key={item.key}
-                    className="flex h-full flex-col items-center justify-center rounded-2xl border border-white/15 bg-white/5 px-6 py-8 text-center backdrop-blur-sm"
+                    className="flex h-full flex-col items-center justify-center rounded-2xl border border-border bg-surface/60 px-6 py-8 text-center backdrop-blur-sm"
                   >
                     {item.kind === "ring" &&
                       (() => {
@@ -916,7 +926,6 @@ export function CaseBody({ c }: { c: Case }) {
                             value={item.data.valor}
                             percent={Number.isFinite(percent) ? percent : 0}
                             label={item.data.label}
-                            color="#66fcf1"
                             icon={item.data.icon ? ICONS[item.data.icon] : undefined}
                           />
                         );
@@ -924,8 +933,8 @@ export function CaseBody({ c }: { c: Case }) {
                     {item.kind === "nps" && <NpsGauge value={parseInt(item.data.valor, 10)} label={item.data.label} />}
                     {item.kind === "card" && (
                       <>
-                        <p className="text-3xl font-black text-white sm:text-4xl">{item.data.valor}</p>
-                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-white/80">
+                        <p className="text-3xl font-black text-navy sm:text-4xl">{item.data.valor}</p>
+                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-slate">
                           {item.data.label}
                         </p>
                       </>
@@ -1004,9 +1013,9 @@ export function CaseBody({ c }: { c: Case }) {
           className="group relative flex items-center justify-center overflow-hidden px-6 py-20 text-center"
         >
           <div className="animated-gradient absolute inset-0" />
-          <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
+          <div className="absolute inset-0 bg-bg/30 transition-colors group-hover:bg-bg/10" />
           <Reveal>
-            <span className="relative inline-flex items-center gap-3 text-2xl font-black text-white sm:text-4xl">
+            <span className="relative inline-flex items-center gap-3 text-2xl font-black text-navy sm:text-4xl">
               <FileText size={28} className="shrink-0" />
               Ver PDF do projeto
               <ArrowUpRight
@@ -1021,19 +1030,19 @@ export function CaseBody({ c }: { c: Case }) {
       {/* CTA final */}
       <section className="relative overflow-hidden px-6 py-32 text-center">
         <div className="animated-gradient absolute inset-0 opacity-70" />
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-bg/40" />
         <div className="relative">
           <Reveal>
-            <p className="text-sm font-bold uppercase tracking-widest text-white/70">
+            <p className="text-sm font-bold uppercase tracking-widest text-slate">
               Case · {SITE_NAME}
             </p>
-            <h2 className="mx-auto mt-3 max-w-lg text-4xl font-black text-white sm:text-5xl">
+            <h2 className="mx-auto mt-3 max-w-lg text-4xl font-black text-navy sm:text-5xl">
               Gostou desse case?
             </h2>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Link
                 href="/cases"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
               >
                 Ver todos os cases <ArrowRight size={18} />
               </Link>
@@ -1042,7 +1051,7 @@ export function CaseBody({ c }: { c: Case }) {
                   href={c.figma_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/40 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white"
+                  className="inline-flex items-center gap-2 rounded-full border-2 border-coral px-6 py-3 text-sm font-bold text-coral transition-colors hover:bg-coral hover:text-coral-ink"
                 >
                   {isFigmaUrl(c.figma_url) ? <Figma size={16} /> : <ArrowUpRight size={16} />}
                   {isFigmaUrl(c.figma_url) ? "Abrir arquivo no Figma" : "Abrir protótipo"}

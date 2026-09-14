@@ -46,7 +46,7 @@ export function NpsGauge({ value, label }: { value: number; label: string }) {
             y1={cy}
             x2={needleTip.x}
             y2={needleTip.y}
-            stroke="#fff"
+            stroke="var(--color-navy)"
             strokeWidth="3"
             strokeLinecap="round"
             initial={{ rotate: 0, opacity: 0 }}
@@ -54,14 +54,14 @@ export function NpsGauge({ value, label }: { value: number; label: string }) {
             transition={{ duration: 1, delay: 0.3 }}
             style={{ transformOrigin: `${cx}px ${cy}px` }}
           />
-          <circle cx={cx} cy={cy} r="5" fill="#fff" />
+          <circle cx={cx} cy={cy} r="5" fill="var(--color-navy)" />
         </svg>
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
-          <span className="text-3xl font-black text-white">{value}</span>
-          <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">NPS</span>
+          <span className="text-3xl font-black text-navy">{value}</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-gray">NPS</span>
         </div>
       </div>
-      <p className="mt-3 text-center text-sm font-bold uppercase tracking-widest text-white/80">{label}</p>
+      <p className="mt-3 text-center text-sm font-bold uppercase tracking-widest text-slate">{label}</p>
     </div>
   );
 }

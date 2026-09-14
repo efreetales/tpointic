@@ -73,12 +73,12 @@ export function ConnectorLine({
       <path
         d={`M ${line.x1} ${line.y1} C ${midX} ${line.y1}, ${midX} ${line.y2}, ${line.x2} ${line.y2}`}
         fill="none"
-        stroke="#66fcf1"
+        stroke="var(--color-coral)"
         strokeWidth="2"
         strokeDasharray="5 6"
         opacity={0.8}
       />
-      <circle cx={line.x1} cy={line.y1} r="4" fill="#66fcf1" />
+      <circle cx={line.x1} cy={line.y1} r="4" fill="var(--color-coral)" />
     </svg>
   );
 }

@@ -9,7 +9,7 @@ export function StatRing({
   value,
   percent,
   label,
-  color = "#66fcf1",
+  color = "var(--color-coral)",
   icon: Icon,
 }: {
   value: string;
@@ -26,7 +26,7 @@ export function StatRing({
   return (
     <div ref={ref} className="flex w-[220px] flex-col items-center">
       {Icon && (
-        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white ring-1 ring-white/20">
+        <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-coral/10 text-coral ring-1 ring-coral/20">
           <Icon size={20} />
         </div>
       )}
@@ -37,7 +37,7 @@ export function StatRing({
             cy="100"
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.22)"
+            stroke="var(--color-border)"
             strokeWidth="10"
           />
           <motion.circle
@@ -58,11 +58,11 @@ export function StatRing({
             transition={{ duration: 1.4, ease: "easeOut" }}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center text-4xl font-black text-white">
+        <div className="absolute inset-0 flex items-center justify-center text-4xl font-black text-navy">
           <Counter value={value} />
         </div>
       </div>
-      <p className="mt-5 text-center text-sm font-bold uppercase tracking-widest text-white/80">
+      <p className="mt-5 text-center text-sm font-bold uppercase tracking-widest text-slate">
         {label}
       </p>
     </div>

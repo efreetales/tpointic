@@ -7,7 +7,7 @@ import type { PieChartData } from "@/lib/cases";
 // Generic categorical palette — not tied to any one case's brand colors
 // (`style_guide.colors` is for that), just enough visually distinct hues to
 // tell 4-6 slices apart. Falls back to this when a slice has no `color`.
-const PIE_PALETTE = ["#66fcf1", "#ef8354", "#3fa34d", "#2e86c1", "#f5c344", "#e5484d"];
+const PIE_PALETTE = ["var(--color-coral)", "#ef8354", "#3fa34d", "#2e86c1", "#f5c344", "#e5484d"];
 
 export function PieChart({ title, slices, total: totalOverride }: PieChartData) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,7 +41,7 @@ export function PieChart({ title, slices, total: totalOverride }: PieChartData) 
       <p className="text-center text-sm font-bold uppercase tracking-widest text-slate">{title}</p>
       <div className="relative mt-8 h-[200px] w-[200px] shrink-0">
         <svg className="h-full w-full -rotate-90" viewBox="0 0 200 200">
-          <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="34" />
+          <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--color-border)" strokeWidth="34" />
           {segments.map((seg, i) => (
             <motion.circle
               key={seg.slice.label}

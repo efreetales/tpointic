@@ -6,7 +6,7 @@ import { motion, useInView } from "framer-motion";
 // Thin animated progress bar — fills in from 0 to `percent` once scrolled
 // into view. Used for lists of stats where a full `StatRing` per item would
 // be too much (ex. Check Survey pontos fortes: many items, all one glance).
-export function AnimatedBar({ percent, color = "#66fcf1" }: { percent: number; color?: string }) {
+export function AnimatedBar({ percent, color = "var(--color-coral)" }: { percent: number; color?: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
 

@@ -62,8 +62,8 @@ export function GalleryStepCounter({
             animate={{ rotateX: 0, opacity: 1 }}
             exit={{ rotateX: 100, opacity: 0 }}
             transition={{ duration: 0.45, ease: "easeOut" }}
-            className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black text-black shadow-xl"
-            style={{ backgroundColor: "#66fcf1", transformStyle: "preserve-3d" }}
+            className="flex h-20 w-20 items-center justify-center rounded-full text-2xl font-black text-coral-ink shadow-xl"
+            style={{ backgroundColor: "var(--color-coral)", transformStyle: "preserve-3d" }}
           >
             {active + 1}
           </motion.div>

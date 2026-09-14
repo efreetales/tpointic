@@ -286,9 +286,9 @@ export default async function Home() {
             href="/cases"
             className="group animated-gradient relative flex items-center justify-center overflow-hidden px-6 py-24 text-center"
           >
-            <div className="absolute inset-0 bg-black/30 transition-colors group-hover:bg-black/10" />
+            <div className="absolute inset-0 bg-bg/30 transition-colors group-hover:bg-bg/10" />
             <Reveal>
-              <span className="relative inline-flex items-center gap-3 text-3xl font-black text-white sm:text-5xl">
+              <span className="relative inline-flex items-center gap-3 text-3xl font-black text-navy sm:text-5xl">
                 Ver portfólio completo
                 <ArrowUpRight
                   size={40}
