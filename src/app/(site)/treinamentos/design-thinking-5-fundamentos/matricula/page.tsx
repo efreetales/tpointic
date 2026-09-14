@@ -37,7 +37,7 @@ export default async function MatriculaPage() {
               </p>
               <Link
                 href="/contato"
-                className="mt-4 inline-block rounded-full bg-coral px-5 py-2 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="mt-4 inline-block rounded-full bg-coral px-5 py-2 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
               >
                 Avise-me
               </Link>

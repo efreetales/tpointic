@@ -92,7 +92,7 @@ export function DesktopScreenShowcase({ screens }: { screens: Screen[] }) {
   };
 
   const lightbox = lightboxIndex !== null && (
-    <div className="site-theme">
+    <div className="site-theme palette-test">
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-6"
         onClick={() => setLightboxIndex(null)}
@@ -153,7 +153,7 @@ export function DesktopScreenShowcase({ screens }: { screens: Screen[] }) {
           type="button"
           onClick={() => setMode("carousel")}
           className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-            mode === "carousel" ? "bg-coral text-black" : "border border-border text-slate hover:border-coral hover:text-coral"
+            mode === "carousel" ? "bg-coral text-coral-ink" : "border border-border text-slate hover:border-coral hover:text-coral"
           }`}
         >
           Carrossel
@@ -162,7 +162,7 @@ export function DesktopScreenShowcase({ screens }: { screens: Screen[] }) {
           type="button"
           onClick={() => setMode("stacked")}
           className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-            mode === "stacked" ? "bg-coral text-black" : "border border-border text-slate hover:border-coral hover:text-coral"
+            mode === "stacked" ? "bg-coral text-coral-ink" : "border border-border text-slate hover:border-coral hover:text-coral"
           }`}
         >
           Lista

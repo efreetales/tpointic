@@ -70,7 +70,7 @@ export function MatriculaForm({ turmaId }: { turmaId: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100"
+        className="w-full rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105 disabled:opacity-60 disabled:hover:scale-100"
       >
         {pending ? "Enviando..." : "Confirmar matrícula"}
       </button>

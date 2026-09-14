@@ -109,7 +109,7 @@ export default async function CursoDesignThinkingPage() {
 
             <MatriculaDrawer
               turma={turma}
-              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+              className="group mt-8 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
             >
               {turma ? "Garantir minha vaga" : "Ver próxima turma"}
               <ArrowUpRight
@@ -231,7 +231,7 @@ export default async function CursoDesignThinkingPage() {
           )}
           <MatriculaDrawer
             turma={turma}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
           >
             {turma ? "Garantir minha vaga" : "Ver próxima turma"}
             <ArrowUpRight size={18} />

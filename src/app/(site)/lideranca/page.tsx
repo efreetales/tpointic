@@ -334,7 +334,7 @@ export default function LiderancaPage() {
           </p>
           <Link
             href="/contato"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
           >
             Vamos conversar <ArrowUpRight size={18} />
           </Link>

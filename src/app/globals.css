@@ -9,6 +9,10 @@
   --color-bg: #fafafa;
   --color-surface: #ffffff;
   --color-border: #eaeaec;
+  /* Texto sobre bg-coral/bg-peach — preto no ciano claro do tema escuro
+     (regra de contraste do design system), branco na paleta clara de teste
+     (roxo/rosa são escuros demais pra texto preto). */
+  --color-coral-ink: #000000;
 }
 
 @theme inline {
@@ -20,6 +24,7 @@
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
   --color-border: var(--color-border);
+  --color-coral-ink: var(--color-coral-ink);
   --font-sans: var(--font-nunito);
 }
 
@@ -39,6 +44,21 @@ body {
   --color-surface: #141414;
   --color-border: #262626;
   color-scheme: dark;
+}
+
+/* EXPERIMENTAL — teste de paleta clara a pedido do usuário. Sobrescreve
+   .site-theme só enquanto TESTING_LIGHT_PALETTE estiver ativa abaixo. */
+.site-theme.palette-test {
+  --color-coral: #857ac6;
+  --color-peach: #ef75b6;
+  --color-navy: #373d44;
+  --color-slate: #6b7280;
+  --color-gray: #8b93a1;
+  --color-bg: #ebecf1;
+  --color-surface: #ffffff;
+  --color-border: #d7d9e2;
+  --color-coral-ink: #ffffff;
+  color-scheme: light;
 }
 
 .hero-gradient {

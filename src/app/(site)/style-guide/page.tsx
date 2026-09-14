@@ -146,7 +146,7 @@ export default function StyleGuidePage() {
           </Reveal>
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <Reveal>
-              <button className="flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105">
+              <button className="flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105">
                 Botão primário <ArrowUpRight size={18} />
               </button>
             </Reveal>
@@ -162,8 +162,10 @@ export default function StyleGuidePage() {
             </Reveal>
           </div>
           <p className="mt-4 text-xs text-gray">
-            Regra fixa: botão com fundo coral (ciano claro) sempre usa{" "}
-            <code className="text-coral">text-black</code> — nunca branco, contraste ruim.
+            Botão com fundo coral sempre usa{" "}
+            <code className="text-coral">text-coral-ink</code> — token que resolve pra preto ou
+            branco conforme o tema (o coral claro do tema escuro pede texto preto; um coral
+            escuro numa paleta clara pede branco).
           </p>
         </div>
       </section>

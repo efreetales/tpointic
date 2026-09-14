@@ -195,7 +195,7 @@ export default async function Home() {
               <Sparkles size={14} /> Tales Pereira &middot; UX Leader
             </div>
             <h1
-              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-navy sm:text-5xl lg:text-6xl"
+              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl"
               style={{ animationDelay: "0.1s" }}
             >
               Design estratégico turbinado por IA.
@@ -213,7 +213,7 @@ export default async function Home() {
             >
               <Link
                 href="/cases"
-                className="group flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="group flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
               >
                 Ver portfólio
                 <ArrowUpRight
@@ -223,7 +223,7 @@ export default async function Home() {
               </Link>
               <Link
                 href="/treinamentos/design-thinking-5-fundamentos"
-                className="rounded-full border border-white/40 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10"
+                className="rounded-full border-2 border-coral bg-transparent px-6 py-3 text-sm font-bold text-coral transition-colors hover:bg-coral hover:text-coral-ink"
               >
                 Conheça a masterclass de Design Thinking
               </Link>

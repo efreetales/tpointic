@@ -43,7 +43,7 @@ export function MatriculaDrawer({
     // `site-theme` reaplicado aqui porque o portal renderiza direto em
     // `document.body`, fora do wrapper em (site)/layout.tsx que normalmente
     // fornece as variáveis de cor do tema escuro do site.
-    <div className="site-theme">
+    <div className="site-theme palette-test">
       <div
         className={`fixed inset-0 z-50 bg-black/60 transition-opacity duration-300 ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
@@ -87,7 +87,7 @@ export function MatriculaDrawer({
                 </p>
                 <Link
                   href="/contato"
-                  className="mt-4 inline-block rounded-full bg-coral px-5 py-2 text-sm font-bold text-black transition-transform hover:scale-105"
+                  className="mt-4 inline-block rounded-full bg-coral px-5 py-2 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
                 >
                   Avise-me quando abrir
                 </Link>
