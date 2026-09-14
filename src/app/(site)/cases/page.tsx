@@ -41,8 +41,8 @@ export default async function CasesPage() {
           muted
           loop
           playsInline
-          className="absolute inset-x-0 bottom-0 w-full object-contain object-bottom"
-          style={{ objectPosition: "78% center" }}
+          className="absolute inset-0 h-full w-full object-contain"
+          style={{ objectPosition: "15% 100%" }}
         />
 
         {/* Degradê branco por cima do vídeo, só do lado direito (onde fica
