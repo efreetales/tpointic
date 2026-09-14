@@ -48,6 +48,17 @@ export default async function CasesPage() {
           style={{ objectPosition: "78% center" }}
         />
 
+        {/* Véu branco translúcido atrás do menu — em alguns instantes do
+            loop (boomerang com zoom no monitor) o vídeo fica claro/escuro
+            demais bem atrás do texto do header, que é transparente ali de
+            propósito (efeito "header dentro do hero"). Esse véu garante
+            contraste mínimo o tempo todo sem tirar o efeito de transparência
+            (ainda dá pra ver o vídeo passando, só que mais suave). */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 bg-white/55"
+          style={{ height: "var(--nav-h, 0px)" }}
+        />
+
         {/* Degradê branco por cima do vídeo, só do lado direito (onde fica
             o texto) — o "branco" do vídeo em si vem do curves= aplicado no
             arquivo (não é branco puro), então em monitores bons aparecem
