@@ -7,63 +7,68 @@ export type ClientLogo = {
   href?: string;
 };
 
-// Logos sourced from the carousel on talespereira.com's homepage — same
-// companies listed in the "Empresas" text strip this replaces. `href` only
-// set when a matching case exists in the portfolio; logos without a case
-// still get the grayscale-to-color hover but aren't clickable.
+// Logos originalmente hospedados em talespereira.com/wp-content/uploads —
+// quebraram quando esse domínio passou a apontar pro próprio site novo (não
+// existe mais WordPress ali pra servir o arquivo). Recuperados do backup
+// `.wpress` e re-hospedados no Supabase Storage (bucket `site`, prefixo
+// `clientes/`). `href` só definido quando existe um case correspondente no
+// portfólio; logos sem case ainda ganham o hover cinza-pra-cor mas não são
+// clicáveis.
+const LOGOS_BASE = "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/clientes";
+
 export const CLIENT_LOGOS: ClientLogo[] = [
   {
     name: "Mercado Livre",
-    src: "https://talespereira.com/wp-content/uploads/2024/08/mercado-livre-logo-8-1.png",
+    src: `${LOGOS_BASE}/mercado-livre-logo-8-1.png`,
     href: "/cases/lideranca-mercado-livre",
   },
   {
     name: "Vivo",
-    src: "https://talespereira.com/wp-content/uploads/2024/08/Logo_VIVO.svg.png",
+    src: `${LOGOS_BASE}/Logo_VIVO.svg.png`,
     href: "/cases/e-sim-vivo-empresas",
   },
   {
     name: "Carrefour",
-    src: "https://talespereira.com/wp-content/uploads/2024/08/carrefour-logo-1.png",
+    src: `${LOGOS_BASE}/carrefour-logo-1.png`,
     href: "/cases/postos-carrefour",
   },
   {
     name: "SulAmérica",
-    src: "https://talespereira.com/wp-content/uploads/2024/08/sulamerica-logo.png",
+    src: `${LOGOS_BASE}/sulamerica-logo.png`,
     href: "/cases/agendamento-online-sulamerica",
   },
   {
     name: "UOL",
-    src: "https://talespereira.com/wp-content/uploads/2024/08/UOL_logo_old.png",
+    src: `${LOGOS_BASE}/UOL_logo_old.png`,
     href: "/cases/uol-musica-deezer",
   },
   {
     name: "CI&T",
-    src: "https://talespereira.com/wp-content/uploads/2024/07/CINT_BIG-ac0f5a83.png",
+    src: `${LOGOS_BASE}/CINT_BIG-ac0f5a83.png`,
   },
   {
     name: "Dasa",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/LogoDasa.png",
+    src: `${LOGOS_BASE}/LogoDasa.png`,
   },
   {
     name: "RD/Drogasil",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/rd-drogasil-s-a-logo-8BD95D26EC-seeklogo.com_.png",
+    src: `${LOGOS_BASE}/rd-drogasil-s-a-logo-8BD95D26EC-seeklogo.com_.png`,
   },
   {
     name: "Rakuten",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/Rakuten-Logo-2.png",
+    src: `${LOGOS_BASE}/Rakuten-Logo-2.png`,
   },
   {
     name: "Casas Bahia",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/casas-bahia-logo-02-scaled.avif",
+    src: `${LOGOS_BASE}/casas-bahia-logo-02-scaled.avif`,
   },
   {
     name: "Cofco",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/Cofco-Intl-logo.png",
+    src: `${LOGOS_BASE}/Cofco-Intl-logo.png`,
   },
   {
     name: "Mercado Pago",
-    src: "https://talespereira.com/wp-content/uploads/2024/09/mercado-pago-logo.png",
+    src: `${LOGOS_BASE}/mercado-pago-logo.png`,
   },
 ];
 
