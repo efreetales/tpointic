@@ -17,24 +17,29 @@ const LINKS = [
   { href: "/contato", label: "Contato" },
 ];
 
+// Páginas com hero full-bleed (vídeo de fundo, sem card/moldura) em vez do
+// fundo escuro padrão do site — o header precisa nascer transparente/claro
+// sobre elas e virar sólido normal assim que o usuário rola além do hero.
+const TRANSPARENT_HERO_PATHS = ["/", "/cases"];
+
 export function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  // EXPERIMENTAL — hero de teste da home tem um vídeo full-bleed como fundo
-  // (ver page.tsx) e o header precisa parecer "dentro" dele — não uma faixa
-  // colada em cima. Header continua `sticky` normalmente (não muda o
-  // mecanismo de posicionamento — só fica transparente aqui), e é a PRÓPRIA
-  // seção do hero que sobe por trás dele via margin-top negativo (ver
-  // `--nav-h` abaixo), então o vídeo realmente ocupa a área do header em vez
-  // de só imitar a cor. Outras páginas nunca tiveram hero full-bleed, então
+  // EXPERIMENTAL — as páginas acima têm um vídeo full-bleed como fundo do
+  // hero e o header precisa parecer "dentro" dele — não uma faixa colada em
+  // cima. Header continua `sticky` normalmente (não muda o mecanismo de
+  // posicionamento — só fica transparente aqui), e é a PRÓPRIA seção do
+  // hero que sobe por trás dele via margin-top negativo (ver `--nav-h`
+  // abaixo), então o vídeo realmente ocupa a área do header em vez de só
+  // imitar a cor. As demais páginas nunca tiveram hero full-bleed, então
   // mantêm o header sempre sólido, sem esse toggle nem a variável de altura.
-  const isHomeHero = pathname === "/";
-  const [pastHero, setPastHero] = useState(!isHomeHero);
+  const hasTransparentHero = TRANSPARENT_HERO_PATHS.includes(pathname);
+  const [pastHero, setPastHero] = useState(!hasTransparentHero);
 
   useEffect(() => {
-    if (!isHomeHero) {
+    if (!hasTransparentHero) {
       setPastHero(true);
       return;
     }
@@ -44,14 +49,14 @@ export function Nav() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [isHomeHero]);
+  }, [hasTransparentHero]);
 
   // Publica a altura real do header numa CSS var — a seção do hero (em
   // page.tsx, um componente separado) lê `--nav-h` pra saber exatamente
   // quanto subir por trás dele, sem os dois lados precisarem concordar um
   // valor fixo hardcoded (a altura muda entre mobile/desktop).
   useEffect(() => {
-    if (!isHomeHero || !headerRef.current) return;
+    if (!hasTransparentHero || !headerRef.current) return;
     const el = headerRef.current;
     const update = () => {
       document.documentElement.style.setProperty("--nav-h", `${el.offsetHeight}px`);
@@ -60,9 +65,9 @@ export function Nav() {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [isHomeHero]);
+  }, [hasTransparentHero]);
 
-  const transparentHero = isHomeHero && !pastHero;
+  const transparentHero = hasTransparentHero && !pastHero;
 
   return (
     <header
