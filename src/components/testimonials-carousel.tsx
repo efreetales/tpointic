@@ -12,8 +12,45 @@ export type Testimonial = {
   linkedin?: string;
 };
 
-export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
+// `variant="light"` — usado nas páginas-exceção com hero de vídeo (ex.
+// /sobre), que rodam sobre fundo branco em vez do tema escuro padrão do
+// site: os tokens de tema (`border-border`, `text-navy` etc.) resolveriam
+// pra tons claros ilegíveis ali, então essa variante troca por cores
+// literais consistentes com o resto dessas páginas.
+const COLORS = {
+  dark: {
+    card: "border-border bg-surface",
+    quote: "text-slate",
+    star: "text-coral fill-coral",
+    name: "text-navy",
+    nameHover: "group-hover:text-coral",
+    role: "text-gray",
+    icon: "text-gray group-hover:text-coral",
+    navBtn: "border-border text-navy hover:border-coral hover:text-coral",
+    hoverBg: "hover:bg-bg",
+  },
+  light: {
+    card: "border-[#e5e5e7] bg-[#f6f6f7]",
+    quote: "text-[#4a4a4a]",
+    star: "text-[#058fa1] fill-[#058fa1]",
+    name: "text-[#1a1a1a]",
+    nameHover: "group-hover:text-[#058fa1]",
+    role: "text-[#4a4a4a]",
+    icon: "text-[#4a4a4a] group-hover:text-[#058fa1]",
+    navBtn: "border-[#e5e5e7] text-[#1a1a1a] hover:border-[#058fa1] hover:text-[#058fa1]",
+    hoverBg: "hover:bg-white",
+  },
+} as const;
+
+export function TestimonialsCarousel({
+  items,
+  variant = "dark",
+}: {
+  items: Testimonial[];
+  variant?: "dark" | "light";
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const c = COLORS[variant];
 
   const scrollByCard = (dir: 1 | -1) => {
     const track = trackRef.current;
@@ -33,30 +70,30 @@ export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
           <div
             key={t.name}
             data-card
-            className="flex w-[300px] shrink-0 snap-start flex-col rounded-2xl border border-border bg-surface p-6 sm:w-[340px]"
+            className={`flex w-[300px] shrink-0 snap-start flex-col rounded-2xl border p-6 sm:w-[340px] ${c.card}`}
           >
-            <div className="flex gap-1 text-coral">
+            <div className="flex gap-1">
               {Array.from({ length: 5 }).map((_, idx) => (
-                <Star key={idx} size={14} className="fill-coral" />
+                <Star key={idx} size={14} className={c.star} />
               ))}
             </div>
-            <p className="mt-3 flex-1 text-sm text-slate">&ldquo;{t.quote}&rdquo;</p>
+            <p className={`mt-3 flex-1 text-sm ${c.quote}`}>&ldquo;{t.quote}&rdquo;</p>
             {t.linkedin ? (
               <a
                 href={t.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Ver perfil de ${t.name} no LinkedIn`}
-                className="group mt-5 flex items-center gap-3 rounded-xl p-2 -m-2 transition-colors hover:bg-bg"
+                className={`group mt-5 flex items-center gap-3 rounded-xl p-2 -m-2 transition-colors ${c.hoverBg}`}
               >
                 <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
                   <Image src={t.photo} alt={t.name} fill className="object-cover" sizes="44px" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-navy group-hover:text-coral">{t.name}</p>
-                  <p className="truncate text-xs text-gray">{t.role}</p>
+                  <p className={`truncate text-sm font-bold ${c.name} ${c.nameHover}`}>{t.name}</p>
+                  <p className={`truncate text-xs ${c.role}`}>{t.role}</p>
                 </div>
-                <Linkedin size={26} className="shrink-0 text-gray group-hover:text-coral" />
+                <Linkedin size={26} className={`shrink-0 ${c.icon}`} />
               </a>
             ) : (
               <div className="mt-5 flex items-center gap-3">
@@ -64,8 +101,8 @@ export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
                   <Image src={t.photo} alt={t.name} fill className="object-cover" sizes="44px" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-bold text-navy">{t.name}</p>
-                  <p className="truncate text-xs text-gray">{t.role}</p>
+                  <p className={`truncate text-sm font-bold ${c.name}`}>{t.name}</p>
+                  <p className={`truncate text-xs ${c.role}`}>{t.role}</p>
                 </div>
               </div>
             )}
@@ -78,7 +115,7 @@ export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
           type="button"
           onClick={() => scrollByCard(-1)}
           aria-label="Depoimento anterior"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-navy transition-colors hover:border-coral hover:text-coral"
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${c.navBtn}`}
         >
           <ArrowLeft size={18} />
         </button>
@@ -86,7 +123,7 @@ export function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
           type="button"
           onClick={() => scrollByCard(1)}
           aria-label="Próximo depoimento"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-border text-navy transition-colors hover:border-coral hover:text-coral"
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${c.navBtn}`}
         >
           <ArrowRight size={18} />
         </button>

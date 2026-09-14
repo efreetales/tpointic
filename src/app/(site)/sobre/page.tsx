@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Star } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
 import { PhotoGallery } from "@/components/photo-gallery";
+import { TestimonialsCarousel, type Testimonial } from "@/components/testimonials-carousel";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -9,30 +9,44 @@ export const metadata: Metadata = {
   description: "Conheça Tales Pereira, Gestor de Design, Service Designer e UX Researcher.",
 };
 
-const TESTIMONIALS = [
+// Mesmo bucket/pasta de avatares usado no carrossel de depoimentos da home
+// (site/depoimentos) — reaproveita as fotos já hospedadas em vez de subir
+// de novo.
+const STORAGE_DEPOIMENTOS =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/depoimentos";
+
+const TESTIMONIALS: Testimonial[] = [
   {
     name: "Milene Ferraz",
     role: "Design Lead @ CI&T",
     quote:
       "Trabalhamos juntos em um projeto onde o resultado foi muito elogiado por todos. Manda bem demais!",
+    photo: `${STORAGE_DEPOIMENTOS}/milene.jpeg`,
+    linkedin: "https://www.linkedin.com/in/milene-ferraz-62788216/",
   },
   {
     name: "Luciana Terceiro",
     role: "Sr. Product Designer, ex-UOL",
     quote:
       "Tales sempre conduziu pesquisas com usuários e liderou sessões de cocriação para melhorar a experiência. Um aprendiz contínuo.",
+    photo: `${STORAGE_DEPOIMENTOS}/luciana.jpeg`,
+    linkedin: "https://www.linkedin.com/in/luterceiro/",
   },
   {
     name: "Pablo Turazzi Vilanova",
     role: "UX Research Technical Leader @ Mercado Livre",
     quote:
       "Trabalhar com o Tales foi uma vivência espetacular... propositivo, inteligente, bem-humorado, sociável.",
+    photo: `${STORAGE_DEPOIMENTOS}/pablo.jpeg`,
+    linkedin: "https://www.linkedin.com/in/pabloturazzi/",
   },
   {
     name: "Romeu Ivolela Neto",
     role: "AI & Philosophy Professional",
     quote:
       "Sensibilidade, empatia com usuários e profundo conhecimento tornam Tales um profissional excelente.",
+    photo: `${STORAGE_DEPOIMENTOS}/romeu.jpeg`,
+    linkedin: "https://www.linkedin.com/in/rivolela/",
   },
 ];
 
@@ -171,25 +185,12 @@ export default function SobrePage() {
           </div>
         </Reveal>
 
-        <h2 className="mt-16 text-2xl font-black text-[#1a1a1a]">Depoimentos</h2>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2">
-          {TESTIMONIALS.map((t, i) => (
-            <Reveal key={t.name} delay={i * 0.08}>
-              <blockquote className="h-full rounded-2xl border border-[#e5e5e7] bg-[#f6f6f7] p-6">
-                <div className="flex gap-1 text-[#058fa1]">
-                  {Array.from({ length: 5 }).map((_, idx) => (
-                    <Star key={idx} size={14} className="fill-[#058fa1]" />
-                  ))}
-                </div>
-                <p className="mt-3 text-[#4a4a4a]">&ldquo;{t.quote}&rdquo;</p>
-                <footer className="mt-4 text-sm font-bold text-[#1a1a1a]">
-                  {t.name}
-                  <span className="block font-normal text-[#4a4a4a]">{t.role}</span>
-                </footer>
-              </blockquote>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal delay={0.15}>
+          <h2 className="mt-16 text-2xl font-black text-[#1a1a1a]">Depoimentos</h2>
+          <div className="mt-6">
+            <TestimonialsCarousel items={TESTIMONIALS} variant="light" />
+          </div>
+        </Reveal>
       </div>
     </main>
   );
