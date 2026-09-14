@@ -6,7 +6,6 @@ import {
   Rocket,
   ShieldCheck,
   ArrowUpRight,
-  Sparkles,
 } from "@mynaui/icons-react";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
@@ -150,70 +149,50 @@ export default async function Home() {
 
   return (
     <main className="flex-1">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="hero-gradient absolute inset-0" />
+      {/* Hero — vídeo full-bleed como fundo (referência cartooneast.in) em
+          vez do hero-gradient + foto original. Mesmos textos/CTAs de
+          sempre, só o layout muda (alinhado à direita, sobre fundo branco
+          liso). */}
+      {/* `marginTop`/`paddingTop` com a var `--nav-h` (publicada pelo Nav,
+          que fica sticky/transparente por cima) puxam a seção pra trás do
+          header e recompensam por dentro, pra o texto continuar centralizado
+          na mesma janela visível de sempre — sem isso o vídeo só começaria
+          DEPOIS do header (uma faixa própria, não "uma coisa só"). */}
+      <section
+        className="relative min-h-screen overflow-hidden bg-[#e0e1e6]"
+        style={{
+          marginTop: "calc(-1 * var(--nav-h, 0px))",
+          height: "calc(100vh + var(--nav-h, 0px))",
+        }}
+      >
         <video
-          className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-overlay"
+          src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/hero-puppet.mp4"
           autoPlay
           muted
           loop
           playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+
+        <div
+          className="relative mx-auto flex min-h-screen max-w-6xl items-center justify-end px-6 py-24"
+          style={{ paddingTop: "var(--nav-h, 0px)" }}
         >
-          <source
-            src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/hero-bg.mp4"
-            type="video/mp4"
-          />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/10 to-transparent" />
-
-        {/* Foto — fica fora do fluxo centralizado do texto e sempre rente à
-            faixa de logos abaixo, independente de quanto texto houver. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 mx-auto hidden max-w-5xl px-6 lg:flex lg:justify-end">
-          <div
-            className="animate-fade-up relative aspect-[2/3] w-full max-w-[380px]"
-            style={{ animationDelay: "0.15s" }}
-          >
-            <div className="absolute inset-0 rounded-full bg-coral/25 blur-3xl" />
-            <Image
-              src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-hero-v2.webp"
-              alt="Tales Pereira"
-              fill
-              className="relative object-contain object-bottom"
-              priority
-              quality={95}
-              sizes="380px"
-            />
-          </div>
-        </div>
-
-        {/* Texto — centralizado verticalmente numa área de altura mínima
-            própria, sem depender da altura da foto ao lado. */}
-        <div className="relative mx-auto flex min-h-[70vh] max-w-5xl items-center px-6 sm:min-h-[75vh] lg:min-h-[80vh]">
-          <div className="flex flex-col items-start lg:max-w-[55%]">
-            <div className="animate-fade-up flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-coral backdrop-blur-sm">
-              <Sparkles size={14} /> Tales Pereira &middot; UX Leader
+          <div className="flex flex-col items-end text-right lg:max-w-xl">
+            <div className="flex items-center gap-2 rounded-full border border-[#1a1a1a]/15 bg-white/70 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1a1a1a] backdrop-blur-sm">
+              Tales Pereira &middot; UX Leader
             </div>
-            <h1
-              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-navy sm:text-5xl lg:text-6xl"
-              style={{ animationDelay: "0.1s" }}
-            >
+            <h1 className="mt-6 text-4xl font-black leading-[1.05] text-[#1a1a1a] sm:text-5xl lg:text-6xl">
               Design estratégico turbinado por IA.
             </h1>
-            <p
-              className="animate-fade-up mt-6 max-w-xl text-lg text-white"
-              style={{ animationDelay: "0.2s" }}
-            >
+            <p className="mt-6 text-lg text-[#4a4a4a]">
               Há mais de 15 anos unindo liderança, design e tecnologia para
               transformar problemas complexos em resultados.
             </p>
-            <div
-              className="animate-fade-up mt-10 flex flex-wrap gap-4"
-              style={{ animationDelay: "0.3s" }}
-            >
+            <div className="mt-10 flex flex-wrap items-center justify-end gap-4">
               <Link
                 href="/cases"
-                className="group flex items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="group flex items-center gap-2 rounded-full bg-[#058fa1] px-6 py-3 text-sm font-bold text-white transition-transform hover:scale-105"
               >
                 Ver portfólio
                 <ArrowUpRight
@@ -223,7 +202,7 @@ export default async function Home() {
               </Link>
               <Link
                 href="/treinamentos/design-thinking-5-fundamentos"
-                className="rounded-full border border-white/40 bg-white/5 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white hover:bg-white/10"
+                className="rounded-full border-2 border-[#1a1a1a] px-6 py-3 text-sm font-bold text-[#1a1a1a] transition-colors hover:bg-[#1a1a1a] hover:text-white"
               >
                 Conheça a masterclass de Design Thinking
               </Link>
