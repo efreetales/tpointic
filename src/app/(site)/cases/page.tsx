@@ -31,18 +31,21 @@ export default async function CasesPage() {
           paddingTop: "var(--nav-h, 0px)",
         }}
       >
-        {/* Largura total, altura NATURAL (16:9, sem cover forçando zoom pra
-            cobrir o min-h-screen inteiro) — centralizado verticalmente,
-            deixando o branco da própria seção sobrar em cima/embaixo em vez
-            de esticar/dar zoom no vídeo pra preencher tudo. */}
+        {/* object-cover (não contain) — preenche a seção inteira, sem
+            nenhuma folga/faixa branca de letterbox em volta em NENHUMA
+            resolução (é isso que fazia ficar óbvio "é um vídeo com
+            padding" no mobile). O corte que o cover naturalmente causa (a
+            direita, onde a cena "acaba") fica escondido pelo degradê
+            branco abaixo, que cobre esse corte em qualquer largura de
+            tela. */}
         <video
           src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/hero-cases-typing.mp4"
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-contain"
-          style={{ objectPosition: "15% 100%" }}
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: "78% center" }}
         />
 
         {/* Degradê branco por cima do vídeo, só do lado direito (onde fica
