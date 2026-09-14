@@ -65,8 +65,19 @@ body {
   background: linear-gradient(135deg, #7e20cf 0%, #31cfb4 100%);
 }
 
+/* Paleta clara de teste — só o hero da home por enquanto (as outras seções
+   que usam .hero-gradient/.animated-gradient ainda não entraram na revisão
+   de paleta, então continuam na versão saturada até chegar a vez delas). */
+.palette-test .hero-gradient.pastel-hero {
+  background: linear-gradient(135deg, #efe4fb 0%, #fdeaf3 100%);
+}
+
 .glow-text {
   text-shadow: 0 0 24px rgba(102, 252, 241, 0.35);
+}
+
+.palette-test .glow-text {
+  text-shadow: none;
 }
 
 @keyframes fade-up {
@@ -98,6 +109,12 @@ body {
 
 .animated-gradient {
   background: linear-gradient(115deg, #7e20cf, #31cfb4, #7e20cf);
+  background-size: 200% 200%;
+  animation: gradient-shift 12s ease-in-out infinite;
+}
+
+.palette-test .animated-gradient {
+  background: linear-gradient(115deg, #efe4fb, #fdeaf3, #efe4fb);
   background-size: 200% 200%;
   animation: gradient-shift 12s ease-in-out infinite;
 }

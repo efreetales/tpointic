@@ -31,15 +31,9 @@ const PANEL_IMG_NATURAL: Record<
   "e-sim-vivo-empresas": { width: 829, height: 483, maxDisplayWidth: 640 },
 };
 
-// Flare color echoes each panel's own background (a lighter tint of it)
-// instead of a fixed accent — reads as ambient bloom from that background
-// rather than a spotlight dropped on top of it.
-const PANEL_FLARE_BY_SLUG: Record<string, string> = {
-  "agendamento-online-sulamerica": "#38BDF8", // bright sky blue, visible against the navy panel
-  "uol-musica-deezer": "#D946EF", // bright fuchsia, visible against the dark purple panel
-  "e-sim-vivo-empresas": "#C084FC", // bright lilac, visible against the dark Vivo purple panel
-};
-const PANEL_FLARE_FALLBACK = "#66fcf1";
+// White bloom instead of a per-brand accent — a saturated flare fought with
+// the pastel panel backgrounds, but a soft white glow adapts to any of them.
+const PANEL_FLARE_COLOR = "#ffffff";
 
 export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
   return (
@@ -55,15 +49,15 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
               <p className="text-xs font-bold uppercase tracking-widest text-coral">
                 Case em destaque
               </p>
-              <h3 className="mt-3 max-w-lg text-3xl font-black leading-tight text-white sm:text-5xl">
+              <h3 className="mt-3 max-w-lg text-3xl font-black leading-tight text-navy sm:text-5xl">
                 {c.titulo}
               </h3>
               {c.resumo && (
-                <p className="mt-4 max-w-md text-white/75">{c.resumo}</p>
+                <p className="mt-4 max-w-md text-slate">{c.resumo}</p>
               )}
               <Link
                 href={`/cases/${c.slug}`}
-                className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-coral px-6 py-3 text-sm font-bold text-coral-ink transition-transform hover:scale-105"
               >
                 Ver case completo
                 <ArrowUpRight
@@ -88,8 +82,8 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
                         reads as ambient bloom rather than a dropped-in
                         spotlight. */}
                     <div
-                      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-[60px]"
-                      style={{ backgroundColor: PANEL_FLARE_BY_SLUG[c.slug] ?? PANEL_FLARE_FALLBACK }}
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-40 blur-[60px]"
+                      style={{ backgroundColor: PANEL_FLARE_COLOR }}
                     />
                     <Image
                       src={c.capa_url}

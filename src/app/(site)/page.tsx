@@ -152,7 +152,7 @@ export default async function Home() {
     <main className="flex-1">
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="hero-gradient absolute inset-0" />
+        <div className="hero-gradient pastel-hero absolute inset-0" />
         <video
           className="absolute inset-0 h-full w-full object-cover opacity-15 mix-blend-overlay"
           autoPlay
@@ -195,13 +195,13 @@ export default async function Home() {
               <Sparkles size={14} /> Tales Pereira &middot; UX Leader
             </div>
             <h1
-              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-white sm:text-5xl lg:text-6xl"
+              className="animate-fade-up glow-text mt-6 max-w-xl text-4xl font-black leading-[1.05] text-navy sm:text-5xl lg:text-6xl"
               style={{ animationDelay: "0.1s" }}
             >
               Design estratégico turbinado por IA.
             </h1>
             <p
-              className="animate-fade-up mt-6 max-w-xl text-lg text-white"
+              className="animate-fade-up mt-6 max-w-xl text-lg text-slate"
               style={{ animationDelay: "0.2s" }}
             >
               Há mais de 15 anos unindo liderança, design e tecnologia para
