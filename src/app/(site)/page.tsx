@@ -179,10 +179,7 @@ export default async function Home() {
           style={{ paddingTop: "var(--nav-h, 0px)" }}
         >
           <div className="flex flex-col items-end text-right lg:max-w-xl">
-            <div className="flex items-center gap-2 rounded-full border border-[#1a1a1a]/15 bg-white/70 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#1a1a1a] backdrop-blur-sm">
-              Tales Pereira &middot; UX Leader
-            </div>
-            <h1 className="mt-6 text-4xl font-black leading-[1.05] text-[#1a1a1a] sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-black leading-[1.05] text-[#1a1a1a] sm:text-5xl lg:text-6xl">
               Design estratégico turbinado por IA.
             </h1>
             <p className="mt-6 text-lg text-[#4a4a4a]">

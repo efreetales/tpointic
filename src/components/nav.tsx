@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Menu, X } from "@mynaui/icons-react";
 import { Logo } from "@/components/logo";
-import { SITE_NAME } from "@/lib/site";
 
 const LINKS = [
   { href: "/", label: "Home" },
@@ -43,13 +42,30 @@ export function Nav() {
       setPastHero(true);
       return;
     }
+
+    // Páginas com hero de altura variável (ex.: /cases, que agora é uma
+    // trilha pinada com vários viewports de scroll — ver
+    // `cases-parallax-hero.tsx`) publicam um marcador `#hero-sentinel` bem
+    // no fim da trilha. Quando ele existe, usamos IntersectionObserver nele
+    // em vez da heurística de 85% de UM viewport (que só faz sentido pra
+    // hero de altura fixa, como o da home).
+    const sentinel = document.getElementById("hero-sentinel");
+    if (sentinel) {
+      setPastHero(false);
+      const io = new IntersectionObserver(([entry]) => setPastHero(entry.isIntersecting), {
+        threshold: 0,
+      });
+      io.observe(sentinel);
+      return () => io.disconnect();
+    }
+
     function onScroll() {
       setPastHero(window.scrollY > window.innerHeight * 0.85);
     }
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [hasTransparentHero]);
+  }, [hasTransparentHero, pathname]);
 
   // Publica a altura real do header numa CSS var — a seção do hero (em
   // page.tsx, um componente separado) lê `--nav-h` pra saber exatamente
@@ -79,12 +95,19 @@ export function Nav() {
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
         <Link
           href="/"
-          className={`flex items-center gap-2 text-lg font-black ${
-            transparentHero ? "text-[#1a1a1a]" : "text-navy"
-          }`}
+          className={`flex items-center gap-2 ${transparentHero ? "text-[#1a1a1a]" : "text-navy"}`}
         >
           <Logo className={`h-8 w-8 ${transparentHero ? "text-[#1a1a1a]" : "text-coral"}`} />
-          {SITE_NAME}
+          <span className="flex flex-col leading-tight">
+            <span className="text-base font-black">TALES PEREIRA</span>
+            <span
+              className={`text-[10px] font-bold uppercase tracking-widest ${
+                transparentHero ? "text-[#4a4a4a]" : "text-slate"
+              }`}
+            >
+              UX Leader
+            </span>
+          </span>
         </Link>
 
         <ul
