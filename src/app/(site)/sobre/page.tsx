@@ -223,12 +223,13 @@ export default function SobrePage() {
                 </p>
                 <div className="mt-6 space-y-4 text-[#4a4a4a]">
                   <p>
-                    Nordestino de Maceió, designer estratégico e apaixonado
-                    por Inteligência Artificial como ferramenta para
-                    potencializar — e nunca substituir — a criatividade
-                    humana. Há 16 anos construo soluções na interseção
-                    entre pessoas, negócio e tecnologia, sempre movido por
-                    curiosidade e pelo desejo de gerar impacto real.
+                    Nordestino de Maceió, Especialista em Design Centrado no
+                    Usuário pela Universidade Positivo e entusiasta do uso
+                    da Inteligência Artificial como ferramenta para
+                    potencializar e acelerar meu trabalho como designer. Há
+                    16 anos construo soluções na interseção entre pessoas,
+                    negócio e tecnologia, sempre movido por curiosidade e
+                    pelo desejo de gerar impacto real.
                   </p>
                   <p>
                     Fora do trabalho, vivo entre filmes de terror, MPB,
