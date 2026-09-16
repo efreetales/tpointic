@@ -9,7 +9,6 @@ import { Logo } from "@/components/logo";
 const LINKS = [
   { href: "/", label: "Home" },
   { href: "/sobre", label: "Sobre" },
-  { href: "/servicos", label: "Serviços" },
   { href: "/cases", label: "Cases" },
   { href: "/lideranca", label: "Liderança" },
   { href: "/treinamentos", label: "Treinamentos" },
@@ -19,7 +18,7 @@ const LINKS = [
 // Páginas com hero full-bleed (vídeo de fundo, sem card/moldura) em vez do
 // fundo escuro padrão do site — o header precisa nascer transparente/claro
 // sobre elas e virar sólido normal assim que o usuário rola além do hero.
-const TRANSPARENT_HERO_PATHS = ["/", "/cases", "/sobre"];
+const TRANSPARENT_HERO_PATHS = ["/", "/cases"];
 
 export function Nav() {
   const pathname = usePathname();
@@ -67,12 +66,14 @@ export function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [hasTransparentHero, pathname]);
 
-  // Publica a altura real do header numa CSS var — a seção do hero (em
-  // page.tsx, um componente separado) lê `--nav-h` pra saber exatamente
-  // quanto subir por trás dele, sem os dois lados precisarem concordar um
-  // valor fixo hardcoded (a altura muda entre mobile/desktop).
+  // Publica a altura real do header numa CSS var — usada tanto pelo hero
+  // transparente (pra saber quanto subir por trás dele) quanto por outras
+  // páginas que precisam descontar o header de cálculos de altura (ex.:
+  // centralizar um bloco na "dobra visível" abaixo do nav). Sempre ativo,
+  // não só nas páginas de hero transparente, já que o valor é barato de
+  // publicar e a altura muda entre mobile/desktop.
   useEffect(() => {
-    if (!hasTransparentHero || !headerRef.current) return;
+    if (!headerRef.current) return;
     const el = headerRef.current;
     const update = () => {
       document.documentElement.style.setProperty("--nav-h", `${el.offsetHeight}px`);
@@ -81,7 +82,7 @@ export function Nav() {
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [hasTransparentHero]);
+  }, []);
 
   const transparentHero = hasTransparentHero && !pastHero;
 

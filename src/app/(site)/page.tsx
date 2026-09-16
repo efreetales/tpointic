@@ -244,7 +244,7 @@ export default async function Home() {
         <Reveal delay={0.2}>
           <div className="mt-8 flex justify-center">
             <Link
-              href="/servicos"
+              href="/sobre#servicos"
               className="inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
             >
               Ver todos os serviços <ArrowUpRight size={16} />

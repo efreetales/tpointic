@@ -30,15 +30,15 @@ const COLORS = {
     hoverBg: "hover:bg-bg",
   },
   light: {
-    card: "border-[#e5e5e7] bg-[#f6f6f7]",
+    card: "border-white/40 bg-white/15 shadow-xl backdrop-blur-lg backdrop-saturate-150",
     quote: "text-[#4a4a4a]",
     star: "text-[#058fa1] fill-[#058fa1]",
     name: "text-[#1a1a1a]",
     nameHover: "group-hover:text-[#058fa1]",
     role: "text-[#4a4a4a]",
     icon: "text-[#4a4a4a] group-hover:text-[#058fa1]",
-    navBtn: "border-[#e5e5e7] text-[#1a1a1a] hover:border-[#058fa1] hover:text-[#058fa1]",
-    hoverBg: "hover:bg-white",
+    navBtn: "border-black/10 text-[#1a1a1a] hover:border-[#058fa1] hover:text-[#058fa1]",
+    hoverBg: "hover:bg-black/10",
   },
 } as const;
 
@@ -49,6 +49,7 @@ export function TestimonialsCarousel({
   items: Testimonial[];
   variant?: "dark" | "light";
 }) {
+  const isLight = variant === "light";
   const trackRef = useRef<HTMLDivElement>(null);
   const c = COLORS[variant];
 
@@ -70,21 +71,24 @@ export function TestimonialsCarousel({
           <div
             key={t.name}
             data-card
-            className={`flex w-[300px] shrink-0 snap-start flex-col rounded-2xl border p-6 sm:w-[340px] ${c.card}`}
+            className={`relative flex w-[300px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border p-6 sm:w-[340px] ${c.card}`}
           >
-            <div className="flex gap-1">
+            {isLight && (
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/20 to-white/5" />
+            )}
+            <div className="relative flex gap-1">
               {Array.from({ length: 5 }).map((_, idx) => (
                 <Star key={idx} size={14} className={c.star} />
               ))}
             </div>
-            <p className={`mt-3 flex-1 text-sm ${c.quote}`}>&ldquo;{t.quote}&rdquo;</p>
+            <p className={`relative mt-3 flex-1 text-sm ${c.quote}`}>&ldquo;{t.quote}&rdquo;</p>
             {t.linkedin ? (
               <a
                 href={t.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Ver perfil de ${t.name} no LinkedIn`}
-                className={`group mt-5 flex items-center gap-3 rounded-xl p-2 -m-2 transition-colors ${c.hoverBg}`}
+                className={`group relative mt-5 flex items-center gap-3 rounded-xl p-2 -m-2 transition-colors ${c.hoverBg}`}
               >
                 <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
                   <Image src={t.photo} alt={t.name} fill className="object-cover" sizes="44px" />
@@ -96,7 +100,7 @@ export function TestimonialsCarousel({
                 <Linkedin size={26} className={`shrink-0 ${c.icon}`} />
               </a>
             ) : (
-              <div className="mt-5 flex items-center gap-3">
+              <div className="relative mt-5 flex items-center gap-3">
                 <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
                   <Image src={t.photo} alt={t.name} fill className="object-cover" sizes="44px" />
                 </div>

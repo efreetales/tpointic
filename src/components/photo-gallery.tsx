@@ -10,8 +10,24 @@ import { ArrowLeft, ArrowRight } from "@mynaui/icons-react";
 // misturadas (retrato/paisagem), então um box fixo é o que mantém o
 // carrossel com visual de "tira de fotos" uniforme em vez de larguras
 // aleatórias pulando a cada slide.
-export function PhotoGallery({ photos }: { photos: string[] }) {
+//
+// `variant="dark"` — mesmos tokens de tema escuro usados no resto do site
+// (`border-border`, `text-navy`, `hover:text-coral`) pra quando a galeria
+// roda fora de uma página-exceção de fundo claro.
+const NAV_BTN = {
+  light: "border-black/10 text-[#1a1a1a] hover:border-[#058fa1] hover:text-[#058fa1]",
+  dark: "border-border text-navy hover:border-coral hover:text-coral",
+} as const;
+
+export function PhotoGallery({
+  photos,
+  variant = "light",
+}: {
+  photos: string[];
+  variant?: "light" | "dark";
+}) {
   const trackRef = useRef<HTMLDivElement>(null);
+  const navBtn = NAV_BTN[variant];
 
   const scrollByCard = (dir: 1 | -1) => {
     const track = trackRef.current;
@@ -49,7 +65,7 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
           type="button"
           onClick={() => scrollByCard(-1)}
           aria-label="Foto anterior"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e5e7] text-[#1a1a1a] transition-colors hover:border-[#058fa1] hover:text-[#058fa1]"
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${navBtn}`}
         >
           <ArrowLeft size={18} />
         </button>
@@ -57,7 +73,7 @@ export function PhotoGallery({ photos }: { photos: string[] }) {
           type="button"
           onClick={() => scrollByCard(1)}
           aria-label="Próxima foto"
-          className="flex h-10 w-10 items-center justify-center rounded-full border border-[#e5e5e7] text-[#1a1a1a] transition-colors hover:border-[#058fa1] hover:text-[#058fa1]"
+          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-colors ${navBtn}`}
         >
           <ArrowRight size={18} />
         </button>
