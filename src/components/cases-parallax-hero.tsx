@@ -66,13 +66,17 @@ export function CasesParallaxHero({ cases }: { cases: Case[] }) {
             mas a página ainda precisa de um h1 real pra SEO/acessibilidade. */}
         <h1 className="sr-only">Cases</h1>
 
+        {/* Escondido no mobile — vídeo de fundo full-bleed pesa demais pra
+            conexão/CPU de celular e no fim das contas é só decorativo (o
+            card em primeiro plano já carrega toda a informação). Some
+            atrás do `bg-white` do container. */}
         <video
           src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/hero-cases-typing.mp4"
           autoPlay
           muted
           loop
           playsInline
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 hidden h-full w-full object-cover lg:block"
           style={{ objectPosition: "78% center" }}
         />
 
