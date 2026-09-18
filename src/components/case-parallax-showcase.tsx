@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
-import { getCaseBgColor } from "@/lib/case-colors";
+import { getCaseBgColor, getCaseFlareColor } from "@/lib/case-colors";
 
 // Same sticky-stack parallax pattern used inside case pages for the impact
 // gallery (`case-body.tsx`) — each panel covers the previous one while
@@ -31,25 +31,16 @@ const PANEL_IMG_NATURAL: Record<
   "e-sim-vivo-empresas": { width: 829, height: 483, maxDisplayWidth: 640 },
 };
 
-// Flare color echoes each panel's own background (a lighter tint of it)
-// instead of a fixed accent — reads as ambient bloom from that background
-// rather than a spotlight dropped on top of it.
-const PANEL_FLARE_BY_SLUG: Record<string, string> = {
-  "agendamento-online-sulamerica": "#38BDF8", // bright sky blue, visible against the navy panel
-  "uol-musica-deezer": "#D946EF", // bright fuchsia, visible against the dark purple panel
-  "e-sim-vivo-empresas": "#C084FC", // bright lilac, visible against the dark Vivo purple panel
-};
-const PANEL_FLARE_FALLBACK = "#66fcf1";
-
 export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
   return (
     <div className="relative">
       {cases.map((c, i) => {
+        const bgColor = getCaseBgColor(c.slug, i);
         return (
           <div
             key={c.id}
             className="sticky top-0 flex h-screen w-full flex-col lg:flex-row"
-            style={{ backgroundColor: getCaseBgColor(c.slug, i) }}
+            style={{ backgroundColor: bgColor }}
           >
             <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
               <p className="text-xs font-bold uppercase tracking-widest text-coral">
@@ -89,7 +80,7 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
                         spotlight. */}
                     <div
                       className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-[60px]"
-                      style={{ backgroundColor: PANEL_FLARE_BY_SLUG[c.slug] ?? PANEL_FLARE_FALLBACK }}
+                      style={{ backgroundColor: getCaseFlareColor(bgColor) }}
                     />
                     <Image
                       src={c.capa_url}
