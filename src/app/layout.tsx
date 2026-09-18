@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import localFont from "next/font/local";
-import { Analytics } from "@vercel/analytics/next";
 import { SITE_NAME } from "@/lib/site";
+import { VercelAnalytics } from "@/components/vercel-analytics";
 import "./globals.css";
 
 // Microsoft Clarity — gravação de sessão, mapa de calor de cliques/scroll.
@@ -34,7 +34,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="pt-BR" className={`${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         {children}
-        <Analytics />
+        <VercelAnalytics />
         <Script id="microsoft-clarity" strategy="afterInteractive">
           {`(function(c,l,a,r,i,t,y){
               c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
