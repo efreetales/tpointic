@@ -1,14 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Compass,
-  Users,
-  Rocket,
-  ShieldCheck,
-  ArrowUpRight,
-} from "@mynaui/icons-react";
+import { ArrowUpRight } from "@mynaui/icons-react";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
+import { HighlightText } from "@/components/highlight-text";
 import { Counter } from "@/components/counter";
 import { LogoMarquee } from "@/components/logo-marquee";
 import { CaseParallaxShowcase } from "@/components/case-parallax-showcase";
@@ -17,28 +12,10 @@ import { TestimonialsCarousel, type Testimonial } from "@/components/testimonial
 const MASTERCLASS_ILUSTRACAO =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
 
-const SERVICOS = [
-  {
-    icon: Compass,
-    title: "Service Design",
-    description: "Serviços úteis, utilizáveis e viáveis, ponta a ponta.",
-  },
-  {
-    icon: Users,
-    title: "UX Research",
-    description: "Pesquisa qualitativa e quantitativa para decisões com dados.",
-  },
-  {
-    icon: Rocket,
-    title: "Design Leadership",
-    description: "Visão estratégica de UX e times de alta performance.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Mentoring",
-    description: "Orientação para designers em início ou transição de carreira.",
-  },
-];
+// Foto com o boneco Taleco — mesma usada no hero de /sobre, reaproveitada
+// aqui no bloco que substitui os cards de "Frentes de atuação".
+const TALES_PHOTO =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-com-puppet-2-flush.png";
 
 const STORAGE_DEPOIMENTOS =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/depoimentos";
@@ -215,44 +192,6 @@ export default async function Home() {
         </section>
       </Reveal>
 
-      {/* Serviços */}
-      <section className="mx-auto max-w-5xl px-6 py-20">
-        <Reveal>
-          <p className="text-center text-sm font-bold uppercase tracking-widest text-coral">
-            Frentes de atuação
-          </p>
-          <h2 className="mt-2 text-center text-3xl font-black text-navy">
-            Como eu posso ajudar
-          </h2>
-        </Reveal>
-
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {SERVICOS.map((s, i) => (
-            <Reveal key={s.title} delay={i * 0.08}>
-              <div className="group h-full rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-coral">
-                <s.icon
-                  size={28}
-                  className="text-coral transition-transform group-hover:scale-110"
-                />
-                <h3 className="mt-4 font-bold text-navy">{s.title}</h3>
-                <p className="mt-2 text-sm text-slate">{s.description}</p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-
-        <Reveal delay={0.2}>
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/sobre#servicos"
-              className="inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
-            >
-              Ver todos os serviços <ArrowUpRight size={16} />
-            </Link>
-          </div>
-        </Reveal>
-      </section>
-
       {/* Cases */}
       {cases.length > 0 && (
         <section className="relative border-t border-border">
@@ -275,6 +214,124 @@ export default async function Home() {
           </Link>
         </section>
       )}
+
+      {/* "Quem sou eu" — mesmo bloco-hero usado em /sobre (foto sticky +
+          saudação + citação), reaproveitado aqui no lugar dos cards de
+          "Frentes de atuação" (que já vivem em /sobre). Entra logo depois
+          dos cases em destaque, com um CTA pra /sobre no fim. O `<h2>` da
+          citação (era `<h1>` em /sobre) evita duplicar o h1 do hero de
+          vídeo acima. Mesmas cores literais claras e mesmo degradê radial
+          fixo — ver comentário equivalente em `sobre/page.tsx` pros
+          detalhes de cada técnica (sticky sem overflow-hidden ancestral,
+          `backgroundAttachment: fixed` pra não ter costura entre as duas
+          colunas, `min-h-[calc(100vh-var(--nav-h))]` pra centralizar na
+          dobra visível). */}
+      <div className="relative flex w-full flex-col border-t border-border lg:flex-row lg:items-start">
+        <div
+          className="relative top-0 hidden h-screen w-[45%] lg:sticky lg:block lg:flex-none lg:overflow-hidden"
+          style={{
+            background:
+              "radial-gradient(140% 120% at 25% 15%, #eef0f3 0%, #dfe3e8 45%, #d1d6de 100%)",
+            backgroundAttachment: "fixed",
+          }}
+        >
+          <div className="absolute bottom-0 left-1/2 aspect-square w-[70%] -translate-x-1/2 rounded-full bg-white/50 blur-3xl" />
+          <div className="animate-fade-up absolute inset-x-0 bottom-0 top-24">
+            <Image
+              src={TALES_PHOTO}
+              alt="Tales Pereira"
+              fill
+              className="relative -scale-x-100 object-contain object-bottom"
+              sizes="45vw"
+              priority
+            />
+          </div>
+        </div>
+
+        <div
+          className="w-full lg:w-[55%] lg:flex-none"
+          style={{
+            background:
+              "radial-gradient(140% 120% at 25% 15%, #eef0f3 0%, #dfe3e8 45%, #d1d6de 100%)",
+            backgroundAttachment: "fixed",
+          }}
+        >
+          <div className="px-6 pb-16 pt-20 lg:px-16 lg:pb-0 lg:pt-0">
+            <Reveal>
+              {/* Mobile/tablet: foto empilhada acima do texto. Some no
+                  desktop (`lg:hidden`), onde a coluna fixa assume. */}
+              <div className="relative mb-10 w-full max-w-[280px] lg:hidden">
+                <div className="absolute bottom-0 left-1/2 aspect-square w-[140%] -translate-x-1/2 rounded-full bg-white/50 blur-3xl" />
+                <div className="relative aspect-[4/5] w-full overflow-hidden">
+                  <Image
+                    src={TALES_PHOTO}
+                    alt="Tales Pereira"
+                    fill
+                    className="relative -scale-x-100 object-contain object-bottom"
+                    sizes="280px"
+                    priority
+                  />
+                </div>
+              </div>
+
+              <div className="lg:flex lg:min-h-[calc(100vh-var(--nav-h,0px))] lg:flex-col lg:justify-center">
+                <p className="relative text-6xl font-black leading-[0.95] text-[#1a1a1a] sm:text-7xl lg:text-8xl">
+                  Olá,
+                  <br />
+                  eu sou o Tales.
+                </p>
+                <p className="relative mt-2 text-3xl font-black leading-tight text-[#1a1a1a] sm:text-4xl">
+                  Mas pode me chamar de <HighlightText>Taleco</HighlightText>
+                </p>
+                <div className="mt-6 space-y-4 text-[#4a4a4a]">
+                  <p>
+                    Nordestino de Maceió, Especialista em Design Centrado no
+                    Usuário pela Universidade Positivo e entusiasta do uso
+                    da Inteligência Artificial como ferramenta para
+                    potencializar e acelerar meu trabalho como designer. Há
+                    16 anos construo soluções na interseção entre pessoas,
+                    negócio e tecnologia, sempre movido por curiosidade e
+                    pelo desejo de gerar impacto real.
+                  </p>
+                  <p>
+                    Fora do trabalho, vivo entre filmes de terror, MPB,
+                    videogames e a Atena, minha pitbull medrosa que me
+                    lembra todos os dias que aparência nunca conta a
+                    história inteira.
+                  </p>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          <div className="px-6 pb-16 lg:px-16 lg:pb-40">
+            <Reveal delay={0.05}>
+              <div className="relative">
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute -left-2 -top-8 select-none font-serif text-7xl font-black text-[#058fa1]/15 sm:-top-10 sm:text-8xl"
+                >
+                  &ldquo;
+                </span>
+                <h2 className="relative text-4xl font-black leading-[1.05] text-[#058fa1] sm:text-5xl lg:text-6xl">
+                  Não me interessa criar produtos bonitos. Me interessa
+                  resolver problemas que importam.
+                </h2>
+              </div>
+              <Link
+                href="/sobre"
+                className="group relative mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-[#058fa1] px-6 py-3 text-sm font-bold text-white transition-transform hover:scale-105"
+              >
+                Saber mais sobre mim
+                <ArrowUpRight
+                  size={18}
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </Link>
+            </Reveal>
+          </div>
+        </div>
+      </div>
 
       {/* Liderança */}
       <section className="border-t border-border bg-surface px-6 py-20">
