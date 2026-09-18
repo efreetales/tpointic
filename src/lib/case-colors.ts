@@ -10,6 +10,7 @@ const PALETTE = ["#0a0a0a", "#12102a", "#0a1f1d"];
 const BY_SLUG: Record<string, string> = {
   "e-sim-vivo-empresas": "#3a1160",
   "agendamento-online-sulamerica": "#1B3A63",
+  "uol-musica-deezer": "#e21d59",
 };
 
 export function getCaseBgColor(slug: string, index: number): string {
