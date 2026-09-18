@@ -14,10 +14,14 @@ import { TestimonialsCarousel, type Testimonial } from "@/components/testimonial
 import Image from "next/image";
 import { SITE_NAME } from "@/lib/site";
 
-// Mesma foto real usada no hero da home antes dela ganhar o vídeo com fundo
-// verde — reaproveitada aqui como retrato ao lado do texto de bio.
+// Teste: segunda opção de foto com o boneco (puppet) — cropada sem pernas,
+// sem a margem transparente sobrando nas laterais/topo (senão
+// `object-contain` encolhia a imagem inteira pra caber na largura,
+// sobrando vão vazio em cima) e SEM margem transparente embaixo também
+// (senão `object-bottom` alinhava essa margem invisível ao fundo do
+// painel em vez do short, sobrando vão vazio embaixo).
 const TALES_PHOTO =
-  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-hero-v2.webp";
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/tales-com-puppet-2-flush.png";
 
 // Conteúdo da antiga página /servicos, incorporado aqui — a página
 // separada foi removida (era só essa lista, sem motivo pra ter uma rota e
@@ -170,7 +174,7 @@ export default function SobrePage() {
               src={TALES_PHOTO}
               alt="Tales Pereira"
               fill
-              className="relative object-contain object-bottom"
+              className="relative -scale-x-100 object-contain object-bottom"
               sizes="45vw"
               priority
             />
@@ -198,7 +202,7 @@ export default function SobrePage() {
                     src={TALES_PHOTO}
                     alt="Tales Pereira"
                     fill
-                    className="relative object-contain object-bottom"
+                    className="relative -scale-x-100 object-contain object-bottom"
                     sizes="280px"
                     priority
                   />
