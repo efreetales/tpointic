@@ -34,6 +34,9 @@ export default async function AdminLayout({
             <Link href="/admin/cases" className="hover:text-coral">
               Cases
             </Link>
+            <Link href="/admin/curtidas" className="hover:text-coral">
+              Curtidas
+            </Link>
             <form action={signOut}>
               <button type="submit" className="hover:text-coral">
                 Sair
