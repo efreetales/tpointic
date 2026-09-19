@@ -23,10 +23,36 @@ const nunito = localFont({
   ],
 });
 
+// Sem isso, redes sociais que puxam preview do link (LinkedIn, WhatsApp...)
+// não achavam og:image nenhuma e tentavam adivinhar uma imagem da própria
+// página — acabavam pegando qualquer coisa, inclusive logo de cliente de
+// algum case. `metadataBase` resolve a URL relativa da imagem pro domínio
+// de produção (sem ele o Next usa localhost em dev, quebrando o preview).
+const OG_IMAGE_URL =
+  "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/og-image.png";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://talespereira.com"),
   title: `${SITE_NAME} — Tales Pereira`,
   description:
     "Portfólio de Design e Masterclass de Design Thinking com Tales Pereira.",
+  openGraph: {
+    title: `${SITE_NAME} — Tales Pereira`,
+    description:
+      "Portfólio de Design e Masterclass de Design Thinking com Tales Pereira.",
+    url: "https://talespereira.com",
+    siteName: SITE_NAME,
+    images: [{ url: OG_IMAGE_URL, width: 1200, height: 630 }],
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — Tales Pereira`,
+    description:
+      "Portfólio de Design e Masterclass de Design Thinking com Tales Pereira.",
+    images: [OG_IMAGE_URL],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

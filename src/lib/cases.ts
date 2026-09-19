@@ -44,6 +44,9 @@ export type Case = {
   publicado_em: string;
   imagens: string[];
   video_url: string | null;
+  video_titulo: string | null;
+  documentario_url: string | null;
+  documentario_titulo: string | null;
   figma_url: string | null;
   prototipo_bg_color: string | null;
   prototipo_altura: number | null;

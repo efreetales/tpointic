@@ -253,14 +253,23 @@ function embedPrototypeUrl(url: string) {
   }
 }
 
-// A Google Drive share link (`/file/d/<id>/view?usp=...`) isn't embeddable
-// as-is — Drive needs the same file id on a `/preview` path instead. Any
-// other video URL (Vimeo/YouTube embed link, a direct `.mp4`) passes
-// through unchanged, so this is safe to run on every `video_url` regardless
-// of source.
+// Um link de compartilhamento do Google Drive (`/file/d/<id>/view?usp=...`)
+// não é embedável como está — Drive precisa do mesmo file id num path
+// `/preview`. Um link de assistir/compartilhar do YouTube (`youtu.be/<id>`
+// ou `youtube.com/watch?v=<id>`) também não embeda direto — precisa do
+// vídeo id num path `/embed/`. Qualquer outra URL (link de embed do
+// Vimeo/YouTube, um .mp4 direto) passa sem alteração, então roda sem risco
+// em cima de qualquer `video_url`/`documentario_url`, seja qual for a fonte.
 function embedVideoUrl(url: string) {
-  const match = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  return match ? `https://drive.google.com/file/d/${match[1]}/preview` : url;
+  const drive = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (drive) return `https://drive.google.com/file/d/${drive[1]}/preview`;
+
+  const youtube = url.match(
+    /(?:youtu\.be\/|youtube\.com\/watch\?v=)([\w-]+)/,
+  );
+  if (youtube) return `https://www.youtube.com/embed/${youtube[1]}`;
+
+  return url;
 }
 
 export function CaseBody({ c }: { c: Case }) {
@@ -949,7 +958,9 @@ export function CaseBody({ c }: { c: Case }) {
             <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
               <div className="text-center lg:text-left">
                 <SectionEyebrow justify="justify-center lg:justify-start">Vídeo</SectionEyebrow>
-                <h2 className="mt-3 text-4xl font-black text-navy sm:text-5xl">Eu explico esse case</h2>
+                <h2 className="mt-3 text-4xl font-black text-navy sm:text-5xl">
+                  {c.video_titulo ?? "Eu explico esse case"}
+                </h2>
               </div>
 
               <div className="overflow-hidden rounded-2xl border border-border shadow-2xl">
@@ -959,6 +970,40 @@ export function CaseBody({ c }: { c: Case }) {
                   <div className="relative aspect-video">
                     <iframe
                       src={embedVideoUrl(c.video_url)}
+                      className="absolute inset-0 h-full w-full"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
+      {/* Documentário — mesmo layout de duas colunas da seção Vídeo acima,
+          mas é um bloco independente (case pode ter os dois, ex. o vídeo
+          curto "eu explico" + um documentário maior feito pra essa
+          palestra). */}
+      {c.documentario_url && (
+        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
+          <Reveal>
+            <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
+              <div className="text-center lg:text-left">
+                <SectionEyebrow justify="justify-center lg:justify-start">Documentário</SectionEyebrow>
+                <h2 className="mt-3 text-4xl font-black text-navy sm:text-5xl">
+                  {c.documentario_titulo ?? "O documentário dessa palestra"}
+                </h2>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-border shadow-2xl">
+                {c.documentario_url.endsWith(".mp4") ? (
+                  <video src={c.documentario_url} controls className="w-full" preload="metadata" />
+                ) : (
+                  <div className="relative aspect-video">
+                    <iframe
+                      src={embedVideoUrl(c.documentario_url)}
                       className="absolute inset-0 h-full w-full"
                       allow="autoplay; fullscreen; picture-in-picture"
                       allowFullScreen
