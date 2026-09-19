@@ -4,7 +4,7 @@ import { ArrowUpRight } from "@mynaui/icons-react";
 import { getCases } from "@/lib/cases";
 import { Reveal } from "@/components/reveal";
 import { HighlightText } from "@/components/highlight-text";
-import { Counter } from "@/components/counter";
+import { CheckSurveyStats } from "@/components/check-survey-stats";
 import { LogoMarquee } from "@/components/logo-marquee";
 import { CaseParallaxShowcase } from "@/components/case-parallax-showcase";
 import { TestimonialsCarousel, type Testimonial } from "@/components/testimonials-carousel";
@@ -339,6 +339,18 @@ export default async function Home() {
           <Reveal>
             <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
+                {/* Selo branco: o wordmark "mercado livre" é azul-marinho e
+                    some direto no fundo escuro do bloco. */}
+                <div className="mb-5 inline-flex rounded-xl bg-white px-4 py-2.5">
+                  <Image
+                    src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/clientes/mercado-livre-logo-8-1.png"
+                    alt="Mercado Livre"
+                    width={4096}
+                    height={1042}
+                    sizes="160px"
+                    className="h-9 w-auto"
+                  />
+                </div>
                 <p className="text-sm font-bold uppercase tracking-widest text-coral">
                   Case de Liderança · Check Survey 2023
                 </p>
@@ -347,7 +359,7 @@ export default async function Home() {
                 </h2>
                 <p className="mt-3 max-w-xl text-slate">
                   Como conduzi 8 designers no Mercado Livre a 92% de
-                  engajamento e 88% de excelência — e as ações concretas por
+                  engajamento e 88% de execução — e as ações concretas por
                   trás desses números.
                 </p>
                 <Link
@@ -357,24 +369,7 @@ export default async function Home() {
                   Ver o case completo <ArrowUpRight size={16} />
                 </Link>
               </div>
-              <div className="flex gap-6">
-                <div className="text-center">
-                  <p className="text-5xl font-black text-coral">
-                    <Counter value="92%" />
-                  </p>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-widest text-gray">
-                    Engagement
-                  </p>
-                </div>
-                <div className="text-center">
-                  <p className="text-5xl font-black text-coral">
-                    <Counter value="88%" />
-                  </p>
-                  <p className="mt-1 text-xs font-bold uppercase tracking-widest text-gray">
-                    Excelência
-                  </p>
-                </div>
-              </div>
+              <CheckSurveyStats />
             </div>
           </Reveal>
         </div>

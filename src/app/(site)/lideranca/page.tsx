@@ -10,14 +10,14 @@ import {
 } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
 import { Counter } from "@/components/counter";
-import { StatRing } from "@/components/stat-ring";
+import { CheckSurveyStats } from "@/components/check-survey-stats";
 import { AnimatedBar } from "@/components/animated-bar";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Liderança — ${SITE_NAME}`,
   description:
-    "Como Tales Pereira liderou 8 designers no Mercado Livre a 92% de engajamento e 88% de excelência no Check Survey 2023.",
+    "Como Tales Pereira liderou 8 designers no Mercado Livre a 92% de engajamento e 88% de execução no Check Survey 2023.",
 };
 
 const PILARES = [
@@ -159,7 +159,7 @@ export default function LiderancaPage() {
             </h1>
             <p className="mt-4 max-w-xl text-lg text-slate">
               Como conduzi 8 designers no Mercado Livre a 92% de engajamento e
-              88% de excelência — e as ações concretas por trás desses
+              88% de execução — e as ações concretas por trás desses
               números.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 text-xs font-bold text-slate">
@@ -177,15 +177,8 @@ export default function LiderancaPage() {
           </Reveal>
 
           <Reveal delay={0.15}>
-            <div className="mt-10 flex flex-wrap items-start justify-center gap-6 sm:justify-start">
-              <div className="rounded-2xl border border-white/15 bg-white/5 px-8 py-6 backdrop-blur-sm">
-                <StatRing value="92%" percent={92} label="Engagement" />
-                <p className="mt-1 text-center text-xs font-bold text-emerald-400">▲ 4 vs. edição anterior</p>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/5 px-8 py-6 backdrop-blur-sm">
-                <StatRing value="88%" percent={88} label="Excelência (EXE)" />
-                <p className="mt-1 text-center text-xs font-bold text-emerald-400">▲ 2 vs. edição anterior</p>
-              </div>
+            <div className="mt-10">
+              <CheckSurveyStats />
             </div>
           </Reveal>
         </div>

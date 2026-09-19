@@ -33,7 +33,7 @@ const PANEL_IMG_NATURAL: Record<
 
 export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
   return (
-    <div className="relative">
+    <div className="relative overflow-x-clip">
       {cases.map((c, i) => {
         const bgColor = getCaseBgColor(c.slug, i);
         return (
@@ -66,7 +66,12 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
 
             <div className="relative flex-1 lg:w-[62%] lg:flex-none">
               {c.capa_url && (PANEL_IMG_NATURAL[c.slug] ? (
-                <div className="relative z-10 h-full w-full">
+                <div className="relative h-full w-full">
+                  {/* Sem `z-10` no wrapper acima de propósito: z-index criaria
+                      um stacking context próprio, e o `mix-blend-overlay` do
+                      flare só mistura com o que está no MESMO stacking
+                      context — ficaria isolado do bg do painel (que é do
+                      `sticky` lá de cima) e o blend não teria efeito. */}
                   <div
                     className="absolute right-0 top-1/2 -translate-y-1/2"
                     style={{ width: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
@@ -79,7 +84,7 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
                         reads as ambient bloom rather than a dropped-in
                         spotlight. */}
                     <div
-                      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-25 blur-[60px]"
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-45 mix-blend-overlay blur-[60px]"
                       style={{ backgroundColor: getCaseFlareColor(bgColor) }}
                     />
                     <Image
