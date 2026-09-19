@@ -113,23 +113,21 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
-// Fotos recuperadas do backup WordPress (carrossel de galeria da página
-// Sobre original) — re-hospedadas no Supabase Storage (bucket `site`,
-// prefixo `sobre/`), mesma ordem do carrossel original.
+// Galeria = exatamente as fotos entregues em `public/gallery/` (só
+// re-hospedadas no Supabase Storage, bucket `site`, prefixo `sobre/` —
+// os arquivos locais em si não são servidos, são só a fonte de upload).
 const GALLERY_BASE = "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/sobre";
 const GALLERY_PHOTOS = [
-  "IMG_8230.jpg-1024x768.jpg",
-  "20170128_102803-921x1024.jpg",
-  "FB_IMG_1474461089736.jpg",
-  "IMG_20200930_110053-766x1024.jpg",
-  "20230422_145230-1024x768.jpg",
-  "20230511_175421.jpg",
-  "20230622_235748.jpg",
-  "20230727_170716.jpg",
-  "IMG-20160928-WA0017-1024x768.jpg",
-  "20230729_142403-1024x768.jpg",
-  "20231203_145724-1024x768.jpg",
-].map((name) => `${GALLERY_BASE}/${name}`);
+  "20230517_080125.jpg",
+  "IMG-20230305-WA0000.jpg",
+  "IMG-20230807-WA0001.jpg",
+  "IMG-20230826-WA0000.jpeg",
+  "IMG_20200930_110053-768x1026.jpg",
+  "argentina.jpg",
+  "athena com brinquedo.jpg",
+  "postos.png",
+  "sulamerica 01.png",
+].map((name) => `${GALLERY_BASE}/${encodeURIComponent(name)}`);
 
 export default function SobrePage() {
   return (

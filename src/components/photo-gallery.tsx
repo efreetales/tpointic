@@ -54,7 +54,15 @@ export function PhotoGallery({
               alt={`Tales Pereira — foto ${i + 1}`}
               fill
               className="object-cover"
-              sizes="(min-width: 640px) 256px, 224px"
+              // Pede uma imagem bem mais larga que o card exibido (256/224px)
+              // de propósito: o otimizador do Next redimensiona preservando
+              // o aspect ratio original antes do `object-cover` recortar, e
+              // fotos landscape (paisagem) resultariam numa imagem mais baixa
+              // que os 341/298px de altura do card — o `object-cover` então
+              // estica essa imagem pequena pra cobrir a altura, borrando o
+              // resultado. Pedir uma largura maior garante altura suficiente
+              // mesmo pras fotos mais "largas" da galeria, sem upscale.
+              sizes="(min-width: 640px) 700px, 620px"
             />
           </div>
         ))}
