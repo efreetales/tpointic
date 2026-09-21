@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import { getCases } from "@/lib/cases";
+import { MASTERCLASS_URL } from "@/lib/site";
 import { Reveal } from "@/components/reveal";
 import { HighlightText } from "@/components/highlight-text";
 import { CheckSurveyStats } from "@/components/check-survey-stats";
@@ -174,12 +175,14 @@ export default async function Home() {
                   className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
               </Link>
-              <Link
-                href="/treinamentos/design-thinking-5-fundamentos"
+              <a
+                href={MASTERCLASS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-full border-2 border-[#1a1a1a] px-6 py-3 text-sm font-bold text-[#1a1a1a] transition-colors hover:bg-[#1a1a1a] hover:text-white"
               >
                 Conheça a masterclass de Design Thinking
-              </Link>
+              </a>
             </div>
           </div>
         </div>
@@ -391,12 +394,14 @@ export default async function Home() {
                 Ao vivo, online e colaborativa, com apoio de agentes de IA.
                 Pague quanto quiser.
               </p>
-              <Link
-                href="/treinamentos/design-thinking-5-fundamentos"
+              <a
+                href={MASTERCLASS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
               >
                 Garantir minha vaga <ArrowUpRight size={18} />
-              </Link>
+              </a>
             </div>
             <div className="relative mx-auto hidden h-64 w-64 shrink-0 sm:block">
               <Image

@@ -1,9 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import { Reveal } from "@/components/reveal";
-import { SITE_NAME } from "@/lib/site";
+import { MASTERCLASS_URL, SITE_NAME } from "@/lib/site";
 
 const MASTERCLASS_ILUSTRACAO =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/masterclass/solving-problem-illustration.png";
@@ -25,8 +24,10 @@ export default function TreinamentosPage() {
       </Reveal>
 
       <Reveal delay={0.1}>
-        <Link
-          href="/treinamentos/design-thinking-5-fundamentos"
+        <a
+          href={MASTERCLASS_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           className="group mt-10 flex flex-col-reverse items-center gap-6 rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-coral sm:flex-row"
         >
           <div className="flex-1">
@@ -55,7 +56,7 @@ export default function TreinamentosPage() {
               sizes="112px"
             />
           </div>
-        </Link>
+        </a>
       </Reveal>
     </main>
   );
