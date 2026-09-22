@@ -41,6 +41,24 @@ body {
   color-scheme: dark;
 }
 
+/* Paleta do site de treinamento (tpoint.manus.space) — coral #EF8354,
+   navy #2D3142 etc. Aplicada em blocos pontuais do site público (CTA e card
+   da masterclass) pra manter a identidade visual da aula: re-declara os
+   mesmos tokens do `.site-theme`, só que com os valores originais do
+   `:root`, então as classes `text-coral`, `bg-surface`... funcionam iguais
+   dentro do bloco. */
+.masterclass-theme {
+  --color-coral: #ee8355;
+  --color-peach: #f6b26b;
+  --color-navy: #2e3141;
+  --color-slate: #4f5d75;
+  --color-gray: #666666;
+  --color-bg: #fcfcfc;
+  --color-surface: #fcfcfc;
+  --color-border: #eaeaec;
+  color-scheme: light;
+}
+
 .hero-gradient {
   background: linear-gradient(135deg, #7e20cf 0%, #31cfb4 100%);
 }

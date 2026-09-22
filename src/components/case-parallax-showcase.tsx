@@ -31,7 +31,15 @@ const PANEL_IMG_NATURAL: Record<
   "e-sim-vivo-empresas": { width: 829, height: 483, maxDisplayWidth: 640 },
 };
 
-export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
+// `children` = painéis extras (mesmo formato sticky) que entram depois dos
+// cases, ex. o de liderança.
+export function CaseParallaxShowcase({
+  cases,
+  children,
+}: {
+  cases: Case[];
+  children?: React.ReactNode;
+}) {
   return (
     <div className="relative overflow-x-clip">
       {cases.map((c, i) => {
@@ -67,26 +75,38 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
             <div className="relative flex-1 lg:w-[62%] lg:flex-none">
               {c.capa_url && (PANEL_IMG_NATURAL[c.slug] ? (
                 <div className="relative h-full w-full">
-                  {/* Sem `z-10` no wrapper acima de propósito: z-index criaria
-                      um stacking context próprio, e o `mix-blend-overlay` do
-                      flare só mistura com o que está no MESMO stacking
-                      context — ficaria isolado do bg do painel (que é do
-                      `sticky` lá de cima) e o blend não teria efeito. */}
+                  {/* Flare — soft glow centered behind the product shot,
+                      sized off a box with the image's own proportions (not
+                      the column), so it stays centered on it regardless of
+                      image size. Tinted with a lighter version of the
+                      panel's own background instead of a fixed accent
+                      color, and blended with `mix-blend-overlay` so it
+                      reads as ambient bloom, not a dropped-in spotlight.
+
+                      Layer separada da imagem (e centralizada com flex, não
+                      com `translate`/`transform`) de propósito: `mix-blend`
+                      só mistura com o que está no MESMO stacking context, e
+                      qualquer ancestral com `transform`/`translate`/`z-index`
+                      isola o flare do bg do painel — o blend virava mistura
+                      normal sem ninguém perceber. */}
+                  <div className="pointer-events-none absolute inset-0 flex items-center justify-end">
+                    <div
+                      className="relative"
+                      style={{
+                        width: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)`,
+                        aspectRatio: `${PANEL_IMG_NATURAL[c.slug].width} / ${PANEL_IMG_NATURAL[c.slug].height}`,
+                      }}
+                    >
+                      <div
+                        className="absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-50 mix-blend-overlay blur-[60px]"
+                        style={{ backgroundColor: getCaseFlareColor(bgColor) }}
+                      />
+                    </div>
+                  </div>
                   <div
                     className="absolute right-0 top-1/2 -translate-y-1/2"
                     style={{ width: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
                   >
-                    {/* Flare — soft glow centered behind the product shot,
-                        sized off the image's own box (not the column), so
-                        it stays centered on it regardless of image size.
-                        Tinted with a lighter version of the panel's own
-                        background instead of a fixed accent color, so it
-                        reads as ambient bloom rather than a dropped-in
-                        spotlight. */}
-                    <div
-                      className="pointer-events-none absolute left-1/2 top-1/2 h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-45 mix-blend-overlay blur-[60px]"
-                      style={{ backgroundColor: getCaseFlareColor(bgColor) }}
-                    />
                     <Image
                       src={c.capa_url}
                       alt={c.titulo}
@@ -111,6 +131,7 @@ export function CaseParallaxShowcase({ cases }: { cases: Case[] }) {
           </div>
         );
       })}
+      {children}
     </div>
   );
 }

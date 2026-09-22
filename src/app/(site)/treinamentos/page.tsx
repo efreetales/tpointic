@@ -28,11 +28,20 @@ export default function TreinamentosPage() {
           href={MASTERCLASS_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="group mt-10 flex flex-col-reverse items-center gap-6 rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-coral sm:flex-row"
+          className="masterclass-theme group relative mt-10 flex flex-col-reverse items-center gap-6 rounded-2xl border-[1.5px] p-7 shadow-[0_2px_12px_rgba(45,49,66,0.06)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(239,131,84,0.12)] sm:flex-row"
+          // Paleta do site da aula: fundo #fcfcfc, coral #ee8355, texto #2e3141.
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(238,131,85,0.06), rgba(246,178,107,0.04)), #fcfcfc",
+            borderColor: "rgba(238,131,85,0.25)",
+          }}
         >
           <div className="flex-1">
-            <h2 className="text-xl font-black text-navy">
-              Os 5 Fundamentos do Design Thinking
+            <p className="text-[0.8rem] font-bold uppercase tracking-[0.12em] text-coral">
+              Masterclass
+            </p>
+            <h2 className="mt-2 text-xl font-extrabold text-navy">
+              Os <span className="text-coral">5 Fundamentos</span> do Design Thinking
             </h2>
             <p className="mt-2 text-sm text-slate">
               Masterclass ao vivo, online e colaborativa, com apoio de agentes

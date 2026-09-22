@@ -80,6 +80,19 @@ export function CasesParallaxHero({ cases }: { cases: Case[] }) {
           style={{ objectPosition: "78% center" }}
         />
 
+        {/* Camada multiply — o vídeo tem bastante branco "chapado" (fundo +
+            roupa do boneco); um cinza-azulado bem claro em cima, multiplied,
+            escurece só esse branco puro (perto do preto ele não faz quase
+            nada, `multiply` de qualquer cor com preto = preto) e tira um
+            pouco da sensação de fundo sem cor nenhuma, sem tingir o vídeo
+            inteiro como um filtro de cor normal faria. Some no mobile junto
+            com o vídeo (`hidden lg:block`), senão fica um retângulo cinza
+            sólido sobre o `bg-white` do container. */}
+        <div
+          className="pointer-events-none absolute inset-0 hidden mix-blend-multiply lg:block"
+          style={{ backgroundColor: "#e8ecef" }}
+        />
+
         {/* Véu branco translúcido atrás do menu — garante contraste do
             header em qualquer frame do vídeo (ver cases/page.tsx original). */}
         <div

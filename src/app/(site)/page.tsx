@@ -5,7 +5,7 @@ import { getCases } from "@/lib/cases";
 import { MASTERCLASS_URL } from "@/lib/site";
 import { Reveal } from "@/components/reveal";
 import { HighlightText } from "@/components/highlight-text";
-import { CheckSurveyStats } from "@/components/check-survey-stats";
+import { LeadershipPanel } from "@/components/leadership-panel";
 import { LogoMarquee } from "@/components/logo-marquee";
 import { CaseParallaxShowcase } from "@/components/case-parallax-showcase";
 import { TestimonialsCarousel, type Testimonial } from "@/components/testimonials-carousel";
@@ -198,7 +198,9 @@ export default async function Home() {
       {/* Cases */}
       {cases.length > 0 && (
         <section className="relative border-t border-border">
-          <CaseParallaxShowcase cases={cases} />
+          <CaseParallaxShowcase cases={cases}>
+            <LeadershipPanel />
+          </CaseParallaxShowcase>
 
           <Link
             href="/cases"
@@ -336,61 +338,23 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Liderança */}
-      <section className="border-t border-border bg-surface px-6 py-20">
-        <div className="mx-auto max-w-5xl">
-          <Reveal>
-            <div className="grid gap-10 lg:grid-cols-[1fr_auto] lg:items-center">
-              <div>
-                {/* Selo branco: o wordmark "mercado livre" é azul-marinho e
-                    some direto no fundo escuro do bloco. */}
-                <div className="mb-5 inline-flex rounded-xl bg-white px-4 py-2.5">
-                  <Image
-                    src="https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/clientes/mercado-livre-logo-8-1.png"
-                    alt="Mercado Livre"
-                    width={4096}
-                    height={1042}
-                    sizes="160px"
-                    className="h-9 w-auto"
-                  />
-                </div>
-                <p className="text-sm font-bold uppercase tracking-widest text-coral">
-                  Case de Liderança · Check Survey 2023
-                </p>
-                <h2 className="mt-2 text-3xl font-black text-navy">
-                  Liderança que gera engajamento de verdade
-                </h2>
-                <p className="mt-3 max-w-xl text-slate">
-                  Como conduzi 8 designers no Mercado Livre a 92% de
-                  engajamento e 88% de execução — e as ações concretas por
-                  trás desses números.
-                </p>
-                <Link
-                  href="/lideranca"
-                  className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-coral hover:underline"
-                >
-                  Ver o case completo <ArrowUpRight size={16} />
-                </Link>
-              </div>
-              <CheckSurveyStats />
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* Masterclass CTA */}
-      <section className="hero-gradient relative overflow-hidden px-6 py-20">
-        <div className="absolute inset-0 bg-black/40" />
+      {/* Paleta do site da aula (`.masterclass-theme`): fundo #fcfcfc,
+          coral #ee8355 e texto #2e3141. */}
+      <section
+        className="masterclass-theme relative overflow-hidden px-6 py-20"
+        style={{ backgroundColor: "#fcfcfc" }}
+      >
         <Reveal>
           <div className="relative mx-auto grid max-w-5xl items-center gap-8 text-center lg:grid-cols-[1fr_auto] lg:text-left">
             <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-white/80">
+              <p className="text-[0.8rem] font-bold uppercase tracking-[0.12em] text-coral">
                 Masterclass
               </p>
-              <h2 className="mt-3 text-3xl font-black text-white sm:text-4xl">
-                Os 5 Fundamentos do Design Thinking
+              <h2 className="mt-3 text-3xl font-extrabold leading-[1.1] text-navy sm:text-4xl lg:text-5xl">
+                Os <span className="text-coral">5 Fundamentos</span> do Design Thinking
               </h2>
-              <p className="mx-auto mt-4 max-w-xl text-white/85 lg:mx-0">
+              <p className="mx-auto mt-4 max-w-xl text-navy/70 lg:mx-0">
                 Ao vivo, online e colaborativa, com apoio de agentes de IA.
                 Pague quanto quiser.
               </p>
@@ -398,7 +362,7 @@ export default async function Home() {
                 href={MASTERCLASS_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+                className="mt-8 inline-flex items-center gap-2 rounded-[10px] bg-coral px-5 py-2.5 text-[0.9375rem] font-bold text-white shadow-[0_4px_16px_rgba(238,131,85,0.28)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#E06B3A] active:scale-[0.97]"
               >
                 Garantir minha vaga <ArrowUpRight size={18} />
               </a>
