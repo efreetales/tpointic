@@ -1,5 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
+import { CasePanelTracker } from "@/components/case-panel-tracker";
+import { TrackedCaseLink } from "@/components/tracked-case-link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
 import { MacbookVideo } from "@/components/macbook-screens";
@@ -54,9 +55,11 @@ export function CaseParallaxShowcase({
         return (
           <div
             key={c.id}
+            data-case-panel={c.slug}
             className="sticky top-0 flex h-screen w-full flex-col lg:flex-row"
             style={{ backgroundColor: bgColor }}
           >
+            <CasePanelTracker slug={c.slug} position={i + 1} />
             <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
               <p className="text-xs font-bold uppercase tracking-widest text-coral">
                 Case em destaque
@@ -67,7 +70,9 @@ export function CaseParallaxShowcase({
               {c.resumo && (
                 <p className="mt-4 max-w-md text-white/75">{c.resumo}</p>
               )}
-              <Link
+              <TrackedCaseLink
+                slug={c.slug}
+                position={i + 1}
                 href={`/cases/${c.slug}`}
                 className="group mt-8 inline-flex w-fit items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
               >
@@ -76,7 +81,7 @@ export function CaseParallaxShowcase({
                   size={18}
                   className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
-              </Link>
+              </TrackedCaseLink>
             </div>
 
             <div className="relative flex-1 lg:w-[62%] lg:flex-none">

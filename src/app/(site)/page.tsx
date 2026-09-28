@@ -142,9 +142,18 @@ export default async function Home() {
   // Cases em destaque escolhidos à mão (e não "os 3 primeiros"): assim trocar
   // um deles é só editar essa lista, sem depender da ordem de `publicado_em`.
   const allCases = await getCases();
-  const cases = FEATURED_CASE_SLUGS.map((slug) => allCases.find((c) => c.slug === slug)).filter(
+  const featured = FEATURED_CASE_SLUGS.map((slug) => allCases.find((c) => c.slug === slug)).filter(
     (c): c is Case => !!c,
   );
+  // Ordem aleatória a cada visita (Fisher-Yates), pra dar a mesma chance de
+  // exposição a cada case e conseguir medir qual atrai mais cliques
+  // (`case_events`, ver /admin/desempenho). Server-side de propósito: a página
+  // já é dinâmica, e embaralhar no cliente causaria um "pulo" na hidratação.
+  const cases = [...featured];
+  for (let i = cases.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [cases[i], cases[j]] = [cases[j], cases[i]];
+  }
 
   return (
     <main className="flex-1">
