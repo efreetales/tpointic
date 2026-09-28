@@ -48,14 +48,37 @@ export function Nav() {
     // no fim da trilha. Quando ele existe, usamos IntersectionObserver nele
     // em vez da heurística de 85% de UM viewport (que só faz sentido pra
     // hero de altura fixa, como o da home).
+    // /cases (desktop) não rola: a página cabe na tela e o portal é movido por
+    // "rolagem virtual" (ver `cases-orbit-hero.tsx`). Quem controla o estilo
+    // do menu é o próprio hero, via o evento `hero:past` (true = o portal
+    // já começou a abrir, menu vira o estilo escuro).
+    if (pathname === "/cases" && window.matchMedia("(min-width: 1024px)").matches) {
+      setPastHero(document.documentElement.dataset.heroPast === "1");
+      const onHero = (e: Event) => setPastHero((e as CustomEvent<boolean>).detail);
+      window.addEventListener("hero:past", onHero);
+      return () => window.removeEventListener("hero:past", onHero);
+    }
+
+    // O marcador fica na posição do scroll em que o menu deve trocar de
+    // estilo: passou do topo da tela (top <= 0), o hero acabou pro menu —
+    // e continua "passou" pro resto da página (ao contrário de um
+    // IntersectionObserver, que voltaria a falso quando o marcador saísse
+    // de vista pra cima).
     const sentinel = document.getElementById("hero-sentinel");
     if (sentinel) {
-      setPastHero(false);
-      const io = new IntersectionObserver(([entry]) => setPastHero(entry.isIntersecting), {
-        threshold: 0,
-      });
-      io.observe(sentinel);
-      return () => io.disconnect();
+      const check = () =>
+        // Marcador escondido (ex.: versão mobile da página, sem a trilha):
+        // cai na heurística de 85% de um viewport.
+        sentinel.getClientRects().length === 0
+          ? setPastHero(window.scrollY > window.innerHeight * 0.85)
+          : setPastHero(sentinel.getBoundingClientRect().top <= 0);
+      check();
+      window.addEventListener("scroll", check, { passive: true });
+      window.addEventListener("resize", check);
+      return () => {
+        window.removeEventListener("scroll", check);
+        window.removeEventListener("resize", check);
+      };
     }
 
     function onScroll() {

@@ -66,6 +66,12 @@ export type Case = {
   slides_url: string | null;
   pdf_url: string | null;
   destaques: Destaque[];
+  // Categorias do case (ex. "Product Design", "IA") — alimentam o filtro da
+  // página /cases. Vazio = só aparece em "Todos os cases".
+  categorias: string[];
+  // Frases curtas que o puppet da página /cases "fala" quando o visitante
+  // abre este case (uma é sorteada por vez). Vazio = frases genéricas.
+  frases_puppet: string[];
   hero_title: string | null;
   hero_accent: string | null;
   problema_texto: string | null;

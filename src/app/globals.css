@@ -191,3 +191,26 @@ body {
     animation: none !important;
   }
 }
+
+/* Flutuação em idle dos cards do hero de /cases (`cases-floating-hero.tsx`):
+   sobe e desce devagar, com duração/atraso próprios por card (variáveis
+   CSS), pra o palco nunca ficar parado nem se mover em uníssono. */
+@keyframes card-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+.card-float {
+  animation: card-float var(--float-dur, 7s) ease-in-out var(--float-delay, 0s) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-float {
+    animation: none !important;
+  }
+}

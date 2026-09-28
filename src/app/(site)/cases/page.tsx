@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getCases } from "@/lib/cases";
-import { CasesParallaxHero } from "@/components/cases-parallax-hero";
+import { CasesOrbitHero } from "@/components/cases-orbit-hero";
 import { SITE_NAME } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default async function CasesPage() {
 
   return (
     <main className="flex-1">
-      <CasesParallaxHero cases={cases} />
+      <CasesOrbitHero cases={cases} />
     </main>
   );
 }
