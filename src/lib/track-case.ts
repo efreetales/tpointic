@@ -19,9 +19,32 @@ function sessionId() {
   }
 }
 
-export function trackCaseEvent(slug: string, event: "impression" | "click", position: number) {
-  void createClient()
+// Visitas do próprio admin não entram na conta (senão testar o site polui as
+// métricas). Sem sessão de login → visitante comum, sem nenhuma chamada
+// extra; com sessão, confirma via `is_admin()` (mesma função das policies) e
+// guarda o resultado pra não repetir.
+let adminCheck: Promise<boolean> | null = null;
+
+function isAdminVisitor() {
+  adminCheck ??= (async () => {
+    try {
+      const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) return false;
+      const { data } = await supabase.rpc("is_admin");
+      return data === true;
+    } catch {
+      return false;
+    }
+  })();
+  return adminCheck;
+}
+
+export async function trackCaseEvent(slug: string, event: "impression" | "click", position: number) {
+  if (await isAdminVisitor()) return;
+  await createClient()
     .from("case_events")
-    .insert({ case_slug: slug, event, position, session_id: sessionId() })
-    .then(() => {});
+    .insert({ case_slug: slug, event, position, session_id: sessionId() });
 }

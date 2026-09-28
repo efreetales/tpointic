@@ -54,6 +54,15 @@ export type Case = {
   prototipo_bg_color: string | null;
   prototipo_altura: number | null;
   prototipo_contido: boolean;
+  // Cor de fundo da seção "A solução / Como funciona" (sobrepõe a rotação
+  // de cores; null = usa a rotação).
+  steps_bg_color: string | null;
+  // Frase de apoio sob o título de "A solução" (resumo da solução, ligando
+  // com o problema do bloco anterior).
+  steps_intro: string | null;
+  // URL do projeto no ar (ex. landing page), quando existir — vira um link
+  // "Projeto no ar" no hero e no CTA final do case.
+  projeto_url: string | null;
   slides_url: string | null;
   pdf_url: string | null;
   destaques: Destaque[];
@@ -62,6 +71,9 @@ export type Case = {
   problema_texto: string | null;
   problema_bg_url: string | null;
   problema_bg_color: string | null;
+  // Com `problema_bg_url` + true, a foto vira o fundo (full-bleed) da seção
+  // "O problema" e o texto fica num painel de vidro desfocado por cima.
+  problema_bg_full: boolean;
   problema_video_url: string | null;
   steps: Step[];
   steps_eyebrow: string | null;

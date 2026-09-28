@@ -215,7 +215,9 @@ export default function SobrePage() {
                   100vh) e o texto centralizaria mais pra baixo, sobrando
                   mais espaço em cima do que embaixo. */}
               <div className="lg:flex lg:min-h-[calc(100vh-var(--nav-h,0px))] lg:flex-col lg:justify-center">
-                <p className="relative text-6xl font-black leading-[0.95] text-[#1a1a1a] sm:text-7xl lg:text-8xl">
+                {/* Fonte fluida (clamp em vw) + nowrap: "eu sou o Tales." tem que
+                    caber numa linha só na coluna, em qualquer largura. */}
+                <p className="relative whitespace-nowrap text-[clamp(2.25rem,10.5vw,4.5rem)] font-black leading-[0.95] text-[#1a1a1a] lg:text-[clamp(3.5rem,5.8vw,5.25rem)]">
                   Olá,
                   <br />
                   eu sou o Tales.

@@ -274,6 +274,15 @@ function embedVideoUrl(url: string) {
   return url;
 }
 
+// "https://petiapp.com.br/" → "petiapp.com.br" (rótulo do link "Projeto no ar").
+function projetoHost(url: string) {
+  try {
+    return new URL(url).host.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
+
 export function CaseBody({ c }: { c: Case }) {
   const screens = c.screens.map((s) => ({ src: s.url, alt: s.alt }));
   const hasStepFlow = c.steps.length > 0;
@@ -322,6 +331,7 @@ export function CaseBody({ c }: { c: Case }) {
 
   let bgToggle = 0;
   const nextBg = () => SECTION_BG_PALETTE[bgToggle++ % SECTION_BG_PALETTE.length];
+  const overrideBg = (override: string | null, rotated: string) => override ?? rotated;
 
   return (
     <main className="bg-bg text-navy">
@@ -370,6 +380,20 @@ export function CaseBody({ c }: { c: Case }) {
             </h1>
             {c.resumo && (
               <p className="mx-auto mt-8 max-w-lg text-lg text-white/85 lg:mx-0">{c.resumo}</p>
+            )}
+            {c.projeto_url && (
+              <a
+                href={c.projeto_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group mt-8 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-black transition-transform hover:scale-105"
+              >
+                Projeto no ar · {projetoHost(c.projeto_url)}
+                <ArrowUpRight
+                  size={18}
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </a>
             )}
           </motion.div>
 
@@ -478,6 +502,34 @@ export function CaseBody({ c }: { c: Case }) {
               </Reveal>
             </div>
           </section>
+        ) : c.problema_bg_url && c.problema_bg_full ? (
+          // Foto full-bleed de fundo + painel de vidro desfocado só onde está
+          // o texto. `backdrop-blur` fica num elemento estático (o `Reveal`
+          // entra DENTRO do painel): opacidade/transform animados num
+          // ancestral isolariam o blur do fundo e ele não desfocaria a foto.
+          <section
+            className="relative flex min-h-[80vh] items-center overflow-hidden px-6 py-24 sm:py-32"
+            style={{ backgroundColor: c.problema_bg_color ?? "#0a1f1d" }}
+          >
+            <Image
+              src={c.problema_bg_url}
+              alt=""
+              fill
+              className="object-cover object-[72%_center]"
+              sizes="100vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/45 via-black/10 to-transparent" />
+            <div className="relative mx-auto w-full max-w-6xl">
+              <div className="max-w-xl rounded-3xl border border-white/20 bg-[#04252a]/45 p-8 shadow-2xl backdrop-blur-xl sm:p-12">
+                <Reveal>
+                  <SectionEyebrow justify="justify-start">O desafio</SectionEyebrow>
+                  <p className="mt-5 text-3xl font-black leading-tight text-white sm:text-4xl">
+                    {highlightProblemText(c.problema_texto, "text-[#66fcf1]")}
+                  </p>
+                </Reveal>
+              </div>
+            </div>
+          </section>
         ) : c.problema_bg_url ? (
           <section
             className="relative overflow-hidden px-6 py-32"
@@ -538,12 +590,19 @@ export function CaseBody({ c }: { c: Case }) {
           Prototipação) são coisas diferentes e merecem títulos diferentes;
           nunca reaproveitar "A solução / Como funciona" pra um processo. */}
       {hasStepFlow && (
-        <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
+        // `nextBg()` sempre é chamado (mesmo com cor própria) pra não
+        // deslocar a rotação de cores das seções seguintes.
+        <section className="relative px-6 py-32" style={{ backgroundColor: overrideBg(c.steps_bg_color, nextBg()) }}>
           <Reveal>
             <SectionEyebrow>{c.steps_eyebrow ?? "A solução"}</SectionEyebrow>
             <h2 className="mx-auto mt-3 max-w-2xl text-center text-4xl font-black text-navy sm:text-5xl">
               {c.steps_title ?? "Como funciona"}
             </h2>
+            {c.steps_intro && (
+              <p className="mx-auto mt-6 max-w-2xl text-center text-lg leading-relaxed text-navy/90">
+                {c.steps_intro}
+              </p>
+            )}
           </Reveal>
 
           {videoIndexed && c.video_url ? (
@@ -1126,6 +1185,17 @@ export function CaseBody({ c }: { c: Case }) {
               >
                 Ver todos os cases <ArrowRight size={18} />
               </Link>
+              {c.projeto_url && (
+                <a
+                  href={c.projeto_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/40 px-6 py-3 text-sm font-bold text-white transition-colors hover:border-white"
+                >
+                  <ArrowUpRight size={16} />
+                  Ver projeto no ar
+                </a>
+              )}
               {c.figma_url && (
                 <a
                   href={c.figma_url}

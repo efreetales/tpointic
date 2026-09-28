@@ -11,6 +11,8 @@ const BY_SLUG: Record<string, string> = {
   "e-sim-vivo-empresas": "#3a1160",
   "agendamento-online-sulamerica": "#1B3A63",
   "uol-musica-deezer": "#6a2238",
+  // Verde primário (`--primary`) do protótipo do Pet.iA.
+  "pet-ia": "#00838f",
 };
 
 export function getCaseBgColor(slug: string, index: number): string {
