@@ -570,12 +570,13 @@ function CaseViewer({
       if (e.key === "ArrowLeft") prev();
     };
     window.addEventListener("keydown", onKey);
-    // Trava a rolagem da página por baixo enquanto a visão está aberta.
-    const prevOverflow = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
+    // Sem mexer em `overflow` aqui: no desktop a página de cases já trava a
+    // rolagem do documento (e a limpa ao sair). Quando a visão em destaque
+    // também gravava/restaurava esse valor, clicar em "Ver case completo"
+    // (que desmonta as duas ao mesmo tempo) podia restaurar o "hidden" DEPOIS
+    // da limpeza da página e travar a rolagem da página do case.
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.documentElement.style.overflow = prevOverflow;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -881,9 +882,9 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1024px)");
     const root = document.documentElement;
-    const prevOverflow = root.style.overflow;
     const apply = () => {
-      root.style.overflow = mq.matches ? "hidden" : prevOverflow;
+      if (mq.matches) root.style.overflow = "hidden";
+      else root.style.removeProperty("overflow");
     };
     apply();
     mq.addEventListener("change", apply);
@@ -929,7 +930,9 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       mq.removeEventListener("change", apply);
-      root.style.overflow = prevOverflow;
+      // Sempre remove (em vez de "restaurar" o que estava): não deixa um
+      // `hidden` velho preso ao sair da página.
+      root.style.removeProperty("overflow");
     };
   }, [virt]);
 
