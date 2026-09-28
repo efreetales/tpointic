@@ -7,7 +7,10 @@ import { createClient } from "@/lib/supabase/server";
 // common case) all fall into one implicit group, so no tab menu renders and
 // behavior is unchanged from before this field existed.
 export type Destaque = { label: string; valor: string; icon?: string; grupo?: string };
-export type Step = { icon: string; title: string; description: string };
+// `video_at` (segundos), quando presente em qualquer etapa de um case cujo
+// `video_url` é um .mp4, transforma "A solução" em índice + vídeo: cada etapa
+// vira um capítulo clicável que pula o vídeo pra esse ponto.
+export type Step = { icon: string; title: string; description: string; video_at?: number };
 export type StyleGuideColor = { hex: string; name: string; role: string };
 export type StyleGuidePattern = { title: string; desc: string };
 export type StyleGuide = {
@@ -50,6 +53,7 @@ export type Case = {
   figma_url: string | null;
   prototipo_bg_color: string | null;
   prototipo_altura: number | null;
+  prototipo_contido: boolean;
   slides_url: string | null;
   pdf_url: string | null;
   destaques: Destaque[];

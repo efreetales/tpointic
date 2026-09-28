@@ -44,6 +44,17 @@ function hexToHsl(hex: string): [number, number, number] {
   return [h * 360, s * 100, l * 100];
 }
 
+// Decide se uma seção de fundo variável (cor do protótipo embutido, cor dos
+// painéis da galeria) é "clara" o bastante pra precisar de texto escuro em
+// cima — comparar só contra "#ffffff" exato quebrava pra qualquer
+// quase-branco real (ex. `#f7f9fb`, a cor de canvas de um protótipo
+// específico): o teste dava `false`, o texto caía no branco/quase-branco
+// do tema escuro, e ficava ilegível sobre um fundo também quase branco.
+export function isLightColor(hex: string): boolean {
+  const [, , l] = hexToHsl(hex);
+  return l >= 85;
+}
+
 // Deriva a cor do flare direto do bg do painel (mesmo matiz, saturação e
 // luminosidade elevadas) em vez de manter um mapa separado por slug — antes
 // (`PANEL_FLARE_BY_SLUG` em case-parallax-showcase.tsx) trocar a cor de

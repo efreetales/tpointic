@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@mynaui/icons-react";
-import { getCases } from "@/lib/cases";
+import { getCases, type Case } from "@/lib/cases";
+import { RotatingPhrase } from "@/components/rotating-phrase";
 import { MASTERCLASS_URL } from "@/lib/site";
 import { Reveal } from "@/components/reveal";
 import { HighlightText } from "@/components/highlight-text";
@@ -122,8 +123,28 @@ const TESTIMONIALS: Testimonial[] = [
   },
 ];
 
+// Complementos de "Design estratégico ..." no hero, todos ancorados no que o
+// próprio site já afirma sobre o perfil (IA como acelerador, design centrado
+// no usuário, pesquisa, liderança com 92% de engajamento, impacto real).
+// Cada frase precisa caber numa linha só (≤ ~18 caracteres no tamanho do h1
+// dentro de `max-w-xl`); frase maior quebra e desalinha o título.
+const HERO_PHRASES = [
+  "turbinado por IA.",
+  "feito com gente.",
+  "com pesquisa real.",
+  "que engaja times.",
+  "de impacto real.",
+];
+
+const FEATURED_CASE_SLUGS = ["agendamento-online-sulamerica", "uol-musica-deezer", "pet-ia"];
+
 export default async function Home() {
-  const cases = (await getCases()).slice(0, 3);
+  // Cases em destaque escolhidos à mão (e não "os 3 primeiros"): assim trocar
+  // um deles é só editar essa lista, sem depender da ordem de `publicado_em`.
+  const allCases = await getCases();
+  const cases = FEATURED_CASE_SLUGS.map((slug) => allCases.find((c) => c.slug === slug)).filter(
+    (c): c is Case => !!c,
+  );
 
   return (
     <main className="flex-1">
@@ -158,7 +179,8 @@ export default async function Home() {
         >
           <div className="flex flex-col items-end text-right lg:max-w-xl">
             <h1 className="text-4xl font-black leading-[1.05] text-[#1a1a1a] sm:text-5xl lg:text-6xl">
-              Design estratégico turbinado por IA.
+              Design estratégico
+              <RotatingPhrase phrases={HERO_PHRASES} className="text-[#058fa1]" />
             </h1>
             <p className="mt-6 text-lg text-[#4a4a4a]">
               Há mais de 15 anos unindo liderança, design e tecnologia para

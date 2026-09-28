@@ -20,6 +20,43 @@ const SCREEN_BOX = {
   height: ((741 - 17 + 1) / FRAME_HEIGHT) * 100,
 };
 
+// Mesmo MacBook, mas com um vídeo (mudo, em loop) na tela em vez de um
+// carrossel de imagens — usado no painel de destaque da home.
+export function MacbookVideo({ src }: { src: string }) {
+  return (
+    <div className="relative w-full" style={{ aspectRatio: `${FRAME_WIDTH} / ${FRAME_HEIGHT}` }}>
+      <div
+        className="absolute overflow-hidden rounded-[3%] bg-black"
+        style={{
+          left: `${SCREEN_BOX.left}%`,
+          top: `${SCREEN_BOX.top}%`,
+          width: `${SCREEN_BOX.width}%`,
+          height: `${SCREEN_BOX.height}%`,
+        }}
+      >
+        <video
+          src={src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden
+          className="absolute inset-0 h-full w-full object-cover object-top"
+        />
+      </div>
+
+      <Image
+        src={FRAME_URL}
+        alt=""
+        fill
+        className="pointer-events-none relative z-10 object-contain"
+        sizes="(min-width: 1024px) 760px, 90vw"
+      />
+    </div>
+  );
+}
+
 export function MacbookScreens({
   screens,
   interval = 2600,

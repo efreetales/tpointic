@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
+import { MacbookVideo } from "@/components/macbook-screens";
 import { getCaseBgColor, getCaseFlareColor } from "@/lib/case-colors";
 
 // Same sticky-stack parallax pattern used inside case pages for the impact
@@ -29,7 +30,13 @@ const PANEL_IMG_NATURAL: Record<
   "agendamento-online-sulamerica": { width: 4040, height: 3652, maxDisplayWidth: 620 },
   "uol-musica-deezer": { width: 829, height: 483, maxDisplayWidth: 640 },
   "e-sim-vivo-empresas": { width: 829, height: 483, maxDisplayWidth: 640 },
+  // Capa = MacBook (moldura + tela do app) montado em PNG transparente.
+  "pet-ia": { width: 1370, height: 835, maxDisplayWidth: 760 },
 };
+
+// Cases cujo painel mostra o `video_url` dentro do MacBook (mudo, em loop) em
+// vez da imagem de capa. A capa continua sendo o fallback (sem vídeo .mp4).
+const PANEL_MACBOOK_VIDEO = new Set(["pet-ia"]);
 
 // `children` = painéis extras (mesmo formato sticky) que entram depois dos
 // cases, ex. o de liderança.
@@ -107,14 +114,18 @@ export function CaseParallaxShowcase({
                     className="absolute right-0 top-1/2 -translate-y-1/2"
                     style={{ width: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
                   >
-                    <Image
-                      src={c.capa_url}
-                      alt={c.titulo}
-                      width={PANEL_IMG_NATURAL[c.slug].width}
-                      height={PANEL_IMG_NATURAL[c.slug].height}
-                      className="relative h-auto w-auto max-h-full object-contain"
-                      style={{ maxWidth: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
-                    />
+                    {PANEL_MACBOOK_VIDEO.has(c.slug) && c.video_url?.endsWith(".mp4") ? (
+                      <MacbookVideo src={c.video_url} />
+                    ) : (
+                      <Image
+                        src={c.capa_url}
+                        alt={c.titulo}
+                        width={PANEL_IMG_NATURAL[c.slug].width}
+                        height={PANEL_IMG_NATURAL[c.slug].height}
+                        className="relative h-auto w-auto max-h-full object-contain"
+                        style={{ maxWidth: `min(100%, ${PANEL_IMG_NATURAL[c.slug].maxDisplayWidth}px)` }}
+                      />
+                    )}
                   </div>
                 </div>
               ) : (

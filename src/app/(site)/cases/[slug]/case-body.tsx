@@ -31,6 +31,7 @@ import { StatRing } from "@/components/stat-ring";
 import { NpsGauge } from "@/components/nps-gauge";
 import { PieChart } from "@/components/pie-chart";
 import { GalleryStepCounter } from "@/components/gallery-step-counter";
+import { isLightColor } from "@/lib/case-colors";
 import { ConnectorLine } from "@/components/connector-line";
 import { MascotMaskedVideo } from "@/components/mascot-masked-video";
 import { ScreenMarquee } from "@/components/screen-marquee";
@@ -38,6 +39,7 @@ import { DesktopScreenShowcase } from "@/components/desktop-screen-showcase";
 import { Phone3D } from "@/components/phone-3d";
 import { MacbookScreens } from "@/components/macbook-screens";
 import { Bleed } from "@/components/bleed";
+import { VideoIndex } from "@/components/video-index";
 import type { Case, Destaque, PieChartData } from "@/lib/cases";
 import { SITE_NAME } from "@/lib/site";
 
@@ -275,6 +277,11 @@ function embedVideoUrl(url: string) {
 export function CaseBody({ c }: { c: Case }) {
   const screens = c.screens.map((s) => ({ src: s.url, alt: s.alt }));
   const hasStepFlow = c.steps.length > 0;
+  // "A solução" como índice + vídeo: só quando o vídeo é um .mp4 (precisa de
+  // controle de tempo) e as etapas trazem `video_at`. Nesse caso o vídeo já
+  // aparece ali, então a seção "Vídeo" mais abaixo é omitida.
+  const videoIndexed =
+    !!c.video_url && c.video_url.endsWith(".mp4") && c.steps.length > 0 && c.steps.every((s) => typeof s.video_at === "number");
   const hasStats = c.destaques.length > 0;
   // Split into ring-friendly (percent), gauge-friendly (NPS), and plain
   // stats — a case can mix all three (e.g. a % ring, an NPS gauge, and a
@@ -309,9 +316,9 @@ export function CaseBody({ c }: { c: Case }) {
   // diagrams/screenshots on white bg), the dark section header above them
   // reads as a jarring break — flip the header itself to white too so it
   // reads as one continuous surface instead of dark-to-white-to-dark.
-  const galleryIsLight = c.gallery.length > 0 && c.gallery.every((g) => (g.bg ?? "").toLowerCase() === "#ffffff");
+  const galleryIsLight = c.gallery.length > 0 && c.gallery.every((g) => !!g.bg && isLightColor(g.bg));
   const prototypeBg = c.prototipo_bg_color ?? "#000000";
-  const prototypeIsLight = prototypeBg.toLowerCase() === "#ffffff";
+  const prototypeIsLight = isLightColor(prototypeBg);
 
   let bgToggle = 0;
   const nextBg = () => SECTION_BG_PALETTE[bgToggle++ % SECTION_BG_PALETTE.length];
@@ -539,6 +546,21 @@ export function CaseBody({ c }: { c: Case }) {
             </h2>
           </Reveal>
 
+          {videoIndexed && c.video_url ? (
+            <Reveal delay={0.15}>
+              <div className="mt-16">
+                <VideoIndex
+                  src={c.video_url}
+                  chapters={c.steps.map((step) => ({
+                    title: step.title,
+                    description: step.description,
+                    at: step.video_at ?? 0,
+                    Icon: ICONS[step.icon] ?? CheckCircle,
+                  }))}
+                />
+              </div>
+            </Reveal>
+          ) : (
           <div className="mx-auto mt-20 grid max-w-5xl gap-12 sm:grid-cols-3">
             {c.steps.map((step, i) => {
               const Icon = ICONS[step.icon] ?? CheckCircle;
@@ -558,6 +580,7 @@ export function CaseBody({ c }: { c: Case }) {
               );
             })}
           </div>
+          )}
         </section>
       )}
 
@@ -740,7 +763,10 @@ export function CaseBody({ c }: { c: Case }) {
           protótipo". Sem `prototipo_bg_color` definido, cai pro preto (era
           o único caso até agora — Figma). */}
       {c.figma_url && (
-        <section className="relative px-6 pt-16" style={{ backgroundColor: prototypeBg }}>
+        <section
+          className={`relative px-6 pt-16 ${c.prototipo_contido ? "pb-16" : ""}`}
+          style={{ backgroundColor: prototypeBg }}
+        >
           <Reveal>
             <SectionEyebrow light={prototypeIsLight}>Protótipo</SectionEyebrow>
             <h2
@@ -752,15 +778,33 @@ export function CaseBody({ c }: { c: Case }) {
             </h2>
           </Reveal>
           <Reveal delay={0.15}>
-            <Bleed className="mt-10">
-              <iframe
-                src={embedPrototypeUrl(c.figma_url)}
-                className="w-full"
-                style={{ height: `${c.prototipo_altura ?? 1500}px` }}
-                allow="fullscreen"
-                allowFullScreen
-              />
-            </Bleed>
+            {/* `prototipo_contido`: em vez de full-bleed, o protótipo vai
+                dentro de um quadro (90% da largura em telas grandes, com
+                borda/sombra) — pra protótipos de um app inteiro (ex.
+                Pet.iA) que ficam melhor "emoldurados" do que fundidos com
+                a página. Como o quadro não encosta mais na faixa seguinte,
+                a seção ganha `pb-16` (o full-bleed não tem, de propósito). */}
+            {c.prototipo_contido ? (
+              <div className="mx-auto mt-10 w-full overflow-hidden rounded-2xl border border-black/10 shadow-2xl lg:w-[90%]">
+                <iframe
+                  src={embedPrototypeUrl(c.figma_url)}
+                  className="block w-full"
+                  style={{ height: `${c.prototipo_altura ?? 1500}px` }}
+                  allow="fullscreen"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <Bleed className="mt-10">
+                <iframe
+                  src={embedPrototypeUrl(c.figma_url)}
+                  className="w-full"
+                  style={{ height: `${c.prototipo_altura ?? 1500}px` }}
+                  allow="fullscreen"
+                  allowFullScreen
+                />
+              </Bleed>
+            )}
           </Reveal>
         </section>
       )}
@@ -952,7 +996,7 @@ export function CaseBody({ c }: { c: Case }) {
 
       {/* Vídeo — texto à esquerda, vídeo à direita (não full-bleed: em
           telas grandes um vídeo 100% de largura fica "estourado" demais). */}
-      {c.video_url && (
+      {c.video_url && !videoIndexed && (
         <section className="relative px-6 py-32" style={{ backgroundColor: nextBg() }}>
           <Reveal>
             <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[0.8fr_1.2fr]">
