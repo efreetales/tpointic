@@ -105,6 +105,11 @@ type Body = {
   pitch: number;
   vy: number;
   vp: number;
+  // Deslocamento extra (px de tela) pra evitar sobrepor o vizinho — ver a
+  // resolução de colisão no loop de animação. Não faz parte da órbita em si,
+  // é somado por cima dela.
+  avoidX: number;
+  avoidY: number;
 };
 
 function cardBodies(n: number, yaw0: number, pitch0: number): Body[] {
@@ -127,7 +132,12 @@ function cardBodies(n: number, yaw0: number, pitch0: number): Body[] {
       omega: (0.018 + r(3) * 0.035) * (r(4) < 0.5 ? -1 : 1),
       phase: r(11) * Math.PI * 2,
       radius: 0.85 + r(5) * 0.35,
-      size: 0.9 + r(6) * 0.22,
+      // Variação de tamanho quase cosmética (±4%) — o grosso da diferença de
+      // tamanho entre os cards já vem da perspectiva (`t`, abaixo): um card
+      // mais perto da "câmera" fica maior, um mais longe fica menor, como
+      // profundidade de verdade. Esse fator aqui só evita que todos os cards
+      // no MESMO plano de profundidade pareçam clones idênticos.
+      size: 0.96 + r(6) * 0.08,
       k,
       c: 2 * (0.5 + r(8) * 0.35) * Math.sqrt(k),
       wf1: 0.15 + r(9) * 0.3,
@@ -138,11 +148,32 @@ function cardBodies(n: number, yaw0: number, pitch0: number): Body[] {
       pitch: pitch0,
       vy: 0,
       vp: 0,
+      avoidX: 0,
+      avoidY: 0,
     };
   });
 }
 
-const clamp01 = (v: number) => Math.max(0, Math.min(1, v));
+// Card mais na frente "pesa" mais que um mais atrás — na resolução de
+// sobreposição abaixo, o mais pesado cede menos espaço (o de trás é quem
+// desvia na maior parte).
+const cardWeight = (t: number) => 0.35 + t;
+// Fração do tamanho do card considerada "território" pra efeito de
+// sobreposição — menor que 1 pra permitir um leve encavalamento intencional
+// (como na referência) e só corrigir sobreposições grandes de verdade.
+const AVOID_PACK = 0.86;
+// Deslocamento máximo (px) que a resolução pode empurrar um card — evita que
+// muitas sobreposições simultâneas somem um empurrão exagerado.
+// Fração do tamanho do card (`cardW`) que a resolução pode empurrá-lo —
+// proporcional, não um px fixo: um card na frente é bem maior que um no
+// fundo (a perspectiva os aumenta), então um limite fixo pequeno bastava
+// pra separar dois cards pequenos do fundo mas não dava conta de dois cards
+// grandes da frente, que ficavam parcialmente presos um sobre o outro.
+const AVOID_MAX_FACTOR = 0.7;
+
+const clamp = (v: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(hi, v));
+const clamp01 = (v: number) => clamp(v, 0, 1);
 const easeInOut = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
@@ -1033,6 +1064,20 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
   const pointsCur = useRef<Vec[]>(pointsTarget.current.map((p) => ({ ...p })));
   const presence = useRef<number[]>(cases.map(() => 1));
   const matchRef = useRef<boolean[]>(cases.map(() => true));
+  // Posição/profundidade "de órbita" de cada card (sem o desvio de
+  // sobreposição), recalculadas a cada quadro — servem de entrada pra
+  // resolução de colisão, que roda numa segunda passada depois de todas
+  // estarem prontas.
+  const baseX = useRef<number[]>(cases.map(() => 0));
+  const baseY = useRef<number[]>(cases.map(() => 0));
+  const baseT = useRef<number[]>(cases.map(() => 0));
+  const baseScale = useRef<number[]>(cases.map(() => 0));
+  const corrX = useRef<number[]>(cases.map(() => 0));
+  const corrY = useRef<number[]>(cases.map(() => 0));
+  // Cópia de trabalho do desvio, usada pra relaxar contra VÁRIOS vizinhos
+  // dentro do mesmo quadro (ver Passo 2 abaixo).
+  const workX = useRef<number[]>(cases.map(() => 0));
+  const workY = useRef<number[]>(cases.map(() => 0));
 
   useEffect(() => {
     const idx = cases.flatMap((c, i) =>
@@ -1060,6 +1105,86 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
     let raf = 0;
     let last = performance.now();
     s.current.lastInteraction = last;
+
+    // Pré-aquecimento: resolve a sobreposição ANTES do primeiro quadro
+    // visível, pro globo já nascer com os cards espaçados (em vez de
+    // aparecerem amontoados e só se separarem aos poucos, visivelmente, nos
+    // primeiros segundos). Roda a mesma relaxação do passo 2 do loop
+    // principal, só que de uma vez, com bem mais iterações — não precisa
+    // ser suave aqui, ninguém está vendo ainda.
+    {
+      const w = stage.clientWidth || 1440;
+      const h = stage.clientHeight || 900;
+      const cardW0 = Math.max(280, Math.min(520, w * 0.3));
+      const rx0 = w * 0.66;
+      const ry0 = h * 0.58;
+      const n = cases.length;
+      const bx: number[] = new Array(n).fill(0);
+      const by: number[] = new Array(n).fill(0);
+      const bt: number[] = new Array(n).fill(0);
+      const bs: number[] = new Array(n).fill(0);
+      const wx: number[] = new Array(n).fill(0);
+      const wy: number[] = new Array(n).fill(0);
+      const cx: number[] = new Array(n).fill(0);
+      const cy: number[] = new Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        const b = bodies[i];
+        const pt = pointsTarget.current[i];
+        // orbitT ainda é 0 e a mola do card ainda não rodou: yaw/pitch do
+        // card já começam iguais aos do globo (ver `cardBodies`).
+        const q = axisRotate(pt, b.axis, b.phase);
+        const p = rotate(q, b.yaw, b.pitch);
+        const t = clamp01((p.z + 1) / 2);
+        const persp = 0.6 + 0.4 * t;
+        bt[i] = t;
+        bs[i] = (0.62 + 0.38 * t) * b.size;
+        bx[i] = p.x * b.radius * rx0 * persp;
+        by[i] = p.y * b.radius * ry0 * persp;
+      }
+      const avoidMax0 = cardW0 * AVOID_MAX_FACTOR;
+      for (let iter = 0; iter < 50; iter++) {
+        cx.fill(0);
+        cy.fill(0);
+        for (let i = 0; i < n; i++) {
+          const hwi = cardW0 * bs[i] * 0.5 * AVOID_PACK;
+          const hhi = hwi * 0.75;
+          const exi = bx[i] + wx[i];
+          const eyi = by[i] + wy[i];
+          for (let j = i + 1; j < n; j++) {
+            const hwj = cardW0 * bs[j] * 0.5 * AVOID_PACK;
+            const hhj = hwj * 0.75;
+            const dx = bx[j] + wx[j] - exi;
+            const dy = by[j] + wy[j] - eyi;
+            const dist = Math.hypot(dx, dy);
+            const nx = dx / (hwi + hwj);
+            const ny = dy / (hhi + hhj);
+            const ndist = Math.hypot(nx, ny);
+            if (ndist >= 1) continue;
+            const ang = dist > 0.5 ? 0 : (i * 7 + j * 13) * 0.9;
+            const ux = dist > 0.5 ? dx / dist : Math.cos(ang);
+            const uy = dist > 0.5 ? dy / dist : Math.sin(ang);
+            const overlap =
+              dist > 0.5
+                ? dist * (1 / Math.max(ndist, 1e-4) - 1)
+                : Math.max(hwi + hwj, hhi + hhj) * (1 - ndist);
+            const wi = cardWeight(bt[i]);
+            const wj = cardWeight(bt[j]);
+            cx[i] -= ux * (overlap * (wj / (wi + wj)));
+            cy[i] -= uy * (overlap * (wj / (wi + wj)));
+            cx[j] += ux * (overlap * (wi / (wi + wj)));
+            cy[j] += uy * (overlap * (wi / (wi + wj)));
+          }
+        }
+        for (let i = 0; i < n; i++) {
+          wx[i] = clamp(wx[i] + cx[i] * 0.85, -avoidMax0, avoidMax0);
+          wy[i] = clamp(wy[i] + cy[i] * 0.85, -avoidMax0, avoidMax0);
+        }
+      }
+      for (let i = 0; i < n; i++) {
+        bodies[i].avoidX = wx[i];
+        bodies[i].avoidY = wy[i];
+      }
+    }
 
     const frame = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
@@ -1092,6 +1217,9 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
         gridRef.current.style.backgroundPosition = `${-st.yaw * 70}px ${st.pitch * 70}px`;
       }
 
+      // Passo 1: posição/profundidade "de órbita" de cada card, sem
+      // considerar os vizinhos ainda — guardada em baseX/baseY/baseT/baseScale
+      // pra a resolução de sobreposição (passo 2) usar.
       for (let i = 0; i < cases.length; i++) {
         const el = cardRefs.current[i];
         const b = bodies[i];
@@ -1115,7 +1243,8 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
         // fica clicável depois que a janelinha do puppet estacionou no
         // canto (`dockedRef`) — sem isso, um clique durante a animação do
         // portal podia cair sobre um card e abrir o case sem querer.
-        el.style.pointerEvents = pr > 0.5 && dockedRef.current ? "auto" : "none";
+        el.style.pointerEvents =
+          pr > 0.5 && dockedRef.current ? "auto" : "none";
 
         // Ponto na esfera: acompanha suavemente o novo ponto quando o filtro
         // redistribui os cards (senão os que ficam "teletransportariam").
@@ -1146,9 +1275,16 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
 
         const t = clamp01((p.z + 1) / 2); // 0 = atrás, 1 = frente
         const persp = 0.6 + 0.4 * t; // aproxima do centro quem está longe
-        const scale = (0.45 + 0.55 * t) * b.size * (0.75 + 0.25 * pr);
+        // Variação de tamanho por profundidade mais contida (0.62–1.0, era
+        // 0.45–1.0): na referência os cards da frente não crescem tanto —
+        // isso por si só reduz bastante a área que dois cards grandes podem
+        // ocupar em comum quando se cruzam.
+        const scale = (0.62 + 0.38 * t) * b.size * (0.75 + 0.25 * pr);
         el.style.width = `${cardW}px`;
-        el.style.transform = `translate3d(${(p.x * b.radius + wx) * rx * persp}px, ${(p.y * b.radius + wy) * ry * persp}px, 0) translate(-50%, -50%) scale(${scale})`;
+        baseX.current[i] = (p.x * b.radius + wx) * rx * persp;
+        baseY.current[i] = (p.y * b.radius + wy) * ry * persp;
+        baseT.current[i] = t;
+        baseScale.current[i] = scale;
         // Profundidade = desfoque + ESCURECIMENTO (como na referência): os
         // cards de trás continuam opacos — um cobre o outro — só ficam
         // escuros e borrados. A opacidade só entra na transição do filtro
@@ -1157,6 +1293,100 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
         el.style.opacity = String(pr);
         el.style.filter = `blur(${(Math.pow(1 - t, 1.3) * 10).toFixed(2)}px) brightness(${dim.toFixed(3)})`;
         el.style.zIndex = String(Math.round(t * 100));
+      }
+
+      // Passo 2: resolução de sobreposição em tela, relaxada em algumas
+      // iterações DENTRO do mesmo quadro (não só 1 passada). Com só 1
+      // passada, resolver a sobreposição contra um vizinho podia empurrar o
+      // card direto pra cima de um TERCEIRO (efeito toca-toca) — comum
+      // quando 3+ cards grandes se cruzam perto do centro. Card em primeiro
+      // plano (t alto) "pesa" mais e cede menos; o de trás é quem desvia na
+      // maior parte.
+      const avoidMax = cardW * AVOID_MAX_FACTOR;
+      const decay = Math.pow(0.985, dt * 60);
+      for (let i = 0; i < cases.length; i++) {
+        // Parte de onde o card já estava (decaindo um pouco a cada quadro,
+        // pra voltar sozinho à órbita normal quando ninguém mais sobrepõe).
+        workX.current[i] = bodies[i].avoidX * decay;
+        workY.current[i] = bodies[i].avoidY * decay;
+      }
+      const RELAX_ITERS = 3;
+      for (let iter = 0; iter < RELAX_ITERS; iter++) {
+        corrX.current.fill(0);
+        corrY.current.fill(0);
+        for (let i = 0; i < cases.length; i++) {
+          if (!cardRefs.current[i] || presence.current[i] < 0.01) continue;
+          // Metade-largura/altura reais do card (aspect 4/3) — usadas como
+          // uma ELIPSE (não um círculo): um círculo baseado só na altura
+          // deixava muita margem sobrando nas laterais, já que o card é bem
+          // mais largo que alto.
+          const hwi = cardW * baseScale.current[i] * 0.5 * AVOID_PACK;
+          const hhi = hwi * 0.75;
+          const exi = baseX.current[i] + workX.current[i];
+          const eyi = baseY.current[i] + workY.current[i];
+          for (let j = i + 1; j < cases.length; j++) {
+            if (!cardRefs.current[j] || presence.current[j] < 0.01) continue;
+            const hwj = cardW * baseScale.current[j] * 0.5 * AVOID_PACK;
+            const hhj = hwj * 0.75;
+            const exj = baseX.current[j] + workX.current[j];
+            const eyj = baseY.current[j] + workY.current[j];
+            const dx = exj - exi;
+            const dy = eyj - eyi;
+            const dist = Math.hypot(dx, dy);
+            // Distância normalizada pela elipse combinada: <1 = sobrepondo.
+            const nx = dx / (hwi + hwj);
+            const ny = dy / (hhi + hhj);
+            const ndist = Math.hypot(nx, ny);
+            if (ndist >= 1) continue;
+            // Concêntricos (dist~0): direção determinística (não aleatória),
+            // pra não tremer entre quadros.
+            const ang = dist > 0.5 ? 0 : (i * 7 + j * 13) * 0.9;
+            const ux = dist > 0.5 ? dx / dist : Math.cos(ang);
+            const uy = dist > 0.5 ? dy / dist : Math.sin(ang);
+            // Quanto empurrar ao longo de (dx,dy) pra normalizar a
+            // distância elíptica até 1 (fronteira das elipses).
+            const overlap =
+              dist > 0.5
+                ? dist * (1 / Math.max(ndist, 1e-4) - 1)
+                : Math.max(hwi + hwj, hhi + hhj) * (1 - ndist);
+            const wi = cardWeight(baseT.current[i]);
+            const wj = cardWeight(baseT.current[j]);
+            const moveI = overlap * (wj / (wi + wj));
+            const moveJ = overlap * (wi / (wi + wj));
+            corrX.current[i] -= ux * moveI;
+            corrY.current[i] -= uy * moveI;
+            corrX.current[j] += ux * moveJ;
+            corrY.current[j] += uy * moveJ;
+          }
+        }
+        // Só uma fração da correção por iteração (não o valor cheio): evita
+        // que a relaxação "atire longe demais" quando há vários vizinhos
+        // empurrando o mesmo card em direções diferentes.
+        for (let i = 0; i < cases.length; i++) {
+          if (presence.current[i] < 0.01) continue;
+          workX.current[i] = clamp(
+            workX.current[i] + corrX.current[i] * 0.6,
+            -avoidMax,
+            avoidMax,
+          );
+          workY.current[i] = clamp(
+            workY.current[i] + corrY.current[i] * 0.6,
+            -avoidMax,
+            avoidMax,
+          );
+        }
+      }
+
+      // Passo 3: suaviza a transição até o desvio relaxado (evita que ele
+      // "salte" de um quadro pro outro) e escreve a posição final.
+      const followUp = 1 - Math.exp(-dt * 14);
+      for (let i = 0; i < cases.length; i++) {
+        const el = cardRefs.current[i];
+        const b = bodies[i];
+        if (!el || !b || presence.current[i] < 0.01) continue;
+        b.avoidX += (workX.current[i] - b.avoidX) * followUp;
+        b.avoidY += (workY.current[i] - b.avoidY) * followUp;
+        el.style.transform = `translate3d(${baseX.current[i] + b.avoidX}px, ${baseY.current[i] + b.avoidY}px, 0) translate(-50%, -50%) scale(${baseScale.current[i]})`;
       }
 
       // Cursor (bolinha) seguindo o mouse com suavização.
