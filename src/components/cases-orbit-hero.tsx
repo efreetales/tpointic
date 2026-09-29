@@ -1109,7 +1109,13 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
           continue;
         }
         el.style.visibility = "visible";
-        el.style.pointerEvents = pr > 0.5 ? "auto" : "none";
+        // Cada card recebe seu próprio `pointer-events` aqui (não dá pra
+        // confiar só no `pointer-events-none` do palco pai: um filho com
+        // `auto` sempre vence o `none` do ancestral). Por isso o card só
+        // fica clicável depois que a janelinha do puppet estacionou no
+        // canto (`dockedRef`) — sem isso, um clique durante a animação do
+        // portal podia cair sobre um card e abrir o case sem querer.
+        el.style.pointerEvents = pr > 0.5 && dockedRef.current ? "auto" : "none";
 
         // Ponto na esfera: acompanha suavemente o novo ponto quando o filtro
         // redistribui os cards (senão os que ficam "teletransportariam").
@@ -1312,7 +1318,7 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
                     }}
                     href={`/cases/${c.slug}`}
                     draggable={false}
-                    tabIndex={revealed ? 0 : -1}
+                    tabIndex={docked ? 0 : -1}
                     onClick={(e) => onCardClick(e, i)}
                     onPointerEnter={(e) => {
                       if (e.pointerType === "mouse") {
