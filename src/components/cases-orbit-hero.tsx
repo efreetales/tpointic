@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   animate,
   AnimatePresence,
@@ -12,7 +13,7 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { ArrowUpRight, X } from "@mynaui/icons-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, X } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
 import { getCaseBgColor } from "@/lib/case-colors";
 
@@ -245,8 +246,12 @@ function ModeToggle({
       ),
     },
     {
+      // Token interno continua "lista" (não afeta nada visível — é só a
+      // chave salva no localStorage e usada nos `if`s do resto do arquivo);
+      // só o rótulo e o ícone mudaram de uma lista vertical pra esta galeria
+      // em carrossel.
       mode: "lista",
-      label: "Lista",
+      label: "Galeria",
       icon: (
         <svg
           width="16"
@@ -255,10 +260,11 @@ function ModeToggle({
           aria-hidden
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
+          strokeWidth="1.4"
         >
-          <path d="M2.5 4h11M2.5 8h11M2.5 12h11" />
+          <rect x="1" y="4.3" width="3.2" height="7.4" rx="1" />
+          <rect x="6.4" y="1.8" width="3.2" height="12.4" rx="1" />
+          <rect x="11.8" y="4.3" width="3.2" height="7.4" rx="1" />
         </svg>
       ),
     },
@@ -725,6 +731,341 @@ function CaseViewer({
   );
 }
 
+// Galeria/carrossel (a antiga "Lista"): filme horizontal com um case em
+// destaque no centro (maior, nítido) e os vizinhos menores e desbotados pros
+// lados, como na referência. Clicar num vizinho o traz pro centro; o card em
+// destaque já mostra a galeria de imagens com barra de tempo (mesma lógica
+// da visão em destaque do modo Orbital) direto ali — sem precisar de um
+// segundo clique pra abrir um modal por cima — e clicar nele leva pra página
+// completa do case.
+function GalleryCarousel({
+  cases,
+  category,
+}: {
+  cases: Case[];
+  category: string;
+}) {
+  const router = useRouter();
+  const filtered = useMemo(
+    () =>
+      cases
+        .map((c, i) => ({ c, i }))
+        .filter(({ c }) => category === ALL || c.categorias.includes(category)),
+    [cases, category],
+  );
+  const trackRef = useRef<HTMLDivElement>(null);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [active, setActive] = useState(0);
+
+  // Qual item está mais perto do centro do trilho — é esse que fica "em
+  // destaque" (maior, nítido, clicável pra abrir).
+  const updateActive = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const center = track.scrollLeft + track.clientWidth / 2;
+    let best = 0;
+    let bestDist = Infinity;
+    itemRefs.current.forEach((el, idx) => {
+      if (!el) return;
+      const dist = Math.abs(el.offsetLeft + el.offsetWidth / 2 - center);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = idx;
+      }
+    });
+    setActive(best);
+  }, []);
+
+  // Troca de categoria muda os itens: volta pro início em vez de manter um
+  // índice que agora aponta pra outro case.
+  useEffect(() => {
+    setActive(0);
+    trackRef.current?.scrollTo({ left: 0 });
+  }, [category]);
+
+  useEffect(() => {
+    updateActive();
+  }, [filtered.length, updateActive]);
+
+  const goTo = (idx: number) => {
+    itemRefs.current[idx]?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+      block: "nearest",
+    });
+  };
+
+  // A roda do mouse é vertical por padrão — sem isso, só quem tem trackpad
+  // conseguiria rolar o carrossel. `stopPropagation` pra não deixar a mesma
+  // rolagem também mover o portal (ver o handler global no componente pai).
+  // Em vez de aplicar o delta bruto no scroll (ficava brusco, sem a mesma
+  // suavidade das setas), cada "entalhe" da roda avança um card por vez com
+  // o mesmo `goTo` (scrollIntoView suave) usado pelas setas — trava novos
+  // passos até a animação atual assentar, pra não disparar vários cards de
+  // uma vez num flick rápido.
+  const wheelAccum = useRef(0);
+  const wheelLocked = useRef(false);
+  const onWheel = (e: React.WheelEvent) => {
+    e.stopPropagation();
+    if (wheelLocked.current) return;
+    wheelAccum.current += e.deltaY + e.deltaX;
+    const THRESHOLD = 40;
+    if (Math.abs(wheelAccum.current) < THRESHOLD) return;
+    const dir = wheelAccum.current > 0 ? 1 : -1;
+    wheelAccum.current = 0;
+    const next = clamp(active + dir, 0, filtered.length - 1);
+    if (next === active) return;
+    wheelLocked.current = true;
+    goTo(next);
+    window.setTimeout(() => {
+      wheelLocked.current = false;
+    }, 420);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      goTo(Math.min(filtered.length - 1, active + 1));
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      goTo(Math.max(0, active - 1));
+    } else if ((e.key === "Enter" || e.key === " ") && filtered[active]) {
+      e.preventDefault();
+      router.push(`/cases/${filtered[active].c.slug}`);
+    }
+  };
+
+  const activeCase = filtered[active]?.c;
+  const SHELL = 300; // px — tamanho "neutro" do slot; o destaque cresce por cima via scale
+  const ACTIVE_SCALE = 1.5;
+  const CARD_W = SHELL * ACTIVE_SCALE; // largura real do card em destaque na tela
+  // Altura fixa da trilha (em vez de `flex-1` esticando até o rodapé): o
+  // card em destaque cresce 1.5x por `transform: scale` (não conta pro
+  // layout), então a trilha só precisa de espaço pra caber ele já ampliado
+  // + a sombra. Sem isso, o card ficava centralizado no meio de uma área
+  // enorme, deixando um vão enorme até a legenda embaixo.
+  const TRACK_H = Math.ceil(SHELL * 0.75 * ACTIVE_SCALE) + 32;
+
+  // Galeria de imagens + barra de tempo do card em destaque — mesma ideia da
+  // `CaseViewer`, só que embutida direto no card ampliado (sem modal).
+  const activeImages = useMemo(
+    () => (activeCase ? caseImages(activeCase) : []),
+    [activeCase],
+  );
+  const [slide, setSlide] = useState(0);
+  useEffect(() => setSlide(0), [activeCase?.id]);
+  const nextSlide = () =>
+    setSlide((s) => (s + 1) % Math.max(1, activeImages.length));
+  // No quadro logo após trocar de case (antes do efeito acima zerar
+  // `slide`), o índice antigo pode estourar o novo array — usa módulo pra
+  // nunca cair num índice vazio.
+  const safeSlide = activeImages.length > 0 ? slide % activeImages.length : 0;
+
+  return (
+    <div
+      data-list-scroll
+      data-lenis-prevent
+      className="flex h-full flex-col justify-center"
+      onPointerDown={(e) => e.stopPropagation()}
+      // Mesmo fora do trilho (ex. sobre a legenda/paginação embaixo), a roda
+      // do mouse aqui dentro nunca deve mexer no portal.
+      onWheel={(e) => e.stopPropagation()}
+    >
+      <div className="relative shrink-0" style={{ height: TRACK_H }}>
+        <button
+          type="button"
+          aria-label="Case anterior"
+          onClick={() => goTo(Math.max(0, active - 1))}
+          disabled={active === 0}
+          className="absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-opacity hover:bg-black/75 disabled:pointer-events-none disabled:opacity-0 sm:left-6"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <button
+          type="button"
+          aria-label="Próximo case"
+          onClick={() => goTo(Math.min(filtered.length - 1, active + 1))}
+          disabled={active === filtered.length - 1}
+          className="absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-opacity hover:bg-black/75 disabled:pointer-events-none disabled:opacity-0 sm:right-6"
+        >
+          <ArrowRight size={20} />
+        </button>
+
+        <div
+          ref={trackRef}
+          tabIndex={0}
+          role="listbox"
+          aria-label="Cases"
+          onScroll={() => window.requestAnimationFrame(updateActive)}
+          onWheel={onWheel}
+          onKeyDown={onKeyDown}
+          className="flex h-full items-center gap-8 overflow-x-auto outline-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={{
+            scrollSnapType: "x mandatory",
+            paddingInline: `calc(50% - ${SHELL / 2}px)`,
+          }}
+        >
+          {filtered.map(({ c, i }, idx) => {
+            const dist = Math.abs(idx - active);
+            const isActive = dist === 0;
+            const scale = isActive
+              ? ACTIVE_SCALE
+              : Math.max(0.46, 1 - dist * 0.17);
+            const bright = isActive ? 1 : Math.max(0.3, 1 - dist * 0.16);
+            const blurPx = isActive ? 0 : Math.min(5, dist * 1.3);
+            return (
+              <div
+                key={c.id}
+                ref={(el) => {
+                  itemRefs.current[idx] = el;
+                }}
+                role="option"
+                aria-selected={isActive}
+                style={{
+                  scrollSnapAlign: "center",
+                  width: SHELL,
+                  height: SHELL * 0.75,
+                }}
+                className="relative shrink-0"
+              >
+                <button
+                  type="button"
+                  tabIndex={-1}
+                  onClick={() => {
+                    if (isActive) router.push(`/cases/${c.slug}`);
+                    else goTo(idx);
+                  }}
+                  aria-label={
+                    isActive
+                      ? `Ver a página completa do case ${c.titulo}`
+                      : `Ver o case ${c.titulo}`
+                  }
+                  className="absolute inset-0 block overflow-hidden rounded-2xl bg-[#1a1a1a] shadow-[0_24px_60px_-18px_rgba(0,0,0,0.8)] ring-1 ring-white/10 outline-none transition-[filter,opacity] duration-300 focus-visible:ring-2 focus-visible:ring-[#66fcf1]"
+                  style={{
+                    transform: `scale(${scale})`,
+                    filter: `brightness(${bright}) blur(${blurPx}px)`,
+                    opacity: dist > 5 ? 0 : 1,
+                    zIndex: 100 - dist,
+                    // Card em destaque usa o mesmo fundo colorido + imagem
+                    // "contida" (sem recortar) da visão em destaque do modo
+                    // Orbital — só os vizinhos pequenos da fita continuam
+                    // recortados (cover), que é o que faz sentido numa
+                    // miniatura.
+                    backgroundColor: isActive
+                      ? getCaseBgColor(c.slug, i)
+                      : undefined,
+                  }}
+                >
+                  {isActive && activeImages.length > 0 ? (
+                    <AnimatePresence initial={false}>
+                      <motion.div
+                        key={activeImages[safeSlide]}
+                        className="absolute inset-0"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                      >
+                        <Image
+                          src={activeImages[safeSlide]}
+                          alt=""
+                          fill
+                          className="pointer-events-none object-contain"
+                          sizes="450px"
+                          priority
+                        />
+                      </motion.div>
+                    </AnimatePresence>
+                  ) : isActive && c.capa_url ? (
+                    <Image
+                      src={c.capa_url}
+                      alt=""
+                      fill
+                      className="pointer-events-none object-contain"
+                      sizes="450px"
+                    />
+                  ) : !isActive && c.capa_url ? (
+                    <Image
+                      src={c.capa_url}
+                      alt=""
+                      fill
+                      className="pointer-events-none object-cover"
+                      sizes="450px"
+                    />
+                  ) : (
+                    <div
+                      className="grid h-full place-items-center px-4 text-center text-sm font-black text-white"
+                      style={{
+                        backgroundColor: isActive
+                          ? undefined
+                          : getCaseBgColor(c.slug, i),
+                      }}
+                    >
+                      {c.titulo}
+                    </div>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legenda do case em destaque + paginação — mesmo alinhamento à
+          esquerda e espaçamento compacto da visão em destaque do Orbital
+          (`CaseViewer`), com a MESMA largura do card (sem padding lateral
+          próprio) pra ficar com as bordas alinhadas com ele. */}
+      <div
+        className="mx-auto w-full pb-8 pt-3"
+        style={{ maxWidth: `min(${CARD_W}px, 100%)` }}
+      >
+        {/* Barra de tempo da galeria de imagens do card em destaque. */}
+        {activeImages.length > 1 && (
+          <div
+            className="mb-4 h-[3px] w-full overflow-hidden rounded-full bg-white/15"
+            aria-hidden
+          >
+            <motion.div
+              key={`${activeCase?.id}-${slide}`}
+              className="h-full origin-left rounded-full bg-[#66fcf1]"
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: SLIDE_MS / 1000, ease: "linear" }}
+              onAnimationComplete={nextSlide}
+            />
+          </div>
+        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeCase?.id}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.25 }}
+          >
+            {activeCase?.cliente && (
+              <p className="text-xs font-bold uppercase tracking-widest text-[#66fcf1]">
+                {activeCase.cliente}
+              </p>
+            )}
+            <h2 className="mt-1 text-xl font-black leading-tight text-white">
+              {activeCase?.titulo}
+            </h2>
+            {activeCase?.resumo && (
+              <p className="mt-1.5 text-sm text-white/60">
+                {activeCase.resumo}
+              </p>
+            )}
+          </motion.div>
+        </AnimatePresence>
+        <p className="mt-4 text-xs font-bold tabular-nums text-white/35">
+          {filtered.length > 0 ? active + 1 : 0} / {filtered.length}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export function CasesOrbitHero({ cases }: { cases: Case[] }) {
   const gridRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -1041,9 +1382,7 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
     if (prevMode.current === mode) return;
     prevMode.current = mode;
     say(
-      mode === "lista"
-        ? "Modo lista: tudo organizadinho!"
-        : "De volta à órbita!",
+      mode === "lista" ? "Modo galeria, um de cada vez!" : "De volta à órbita!",
     );
   }, [mode, say]);
   const categoryOptions = useMemo(() => {
@@ -1217,176 +1556,187 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
         gridRef.current.style.backgroundPosition = `${-st.yaw * 70}px ${st.pitch * 70}px`;
       }
 
-      // Passo 1: posição/profundidade "de órbita" de cada card, sem
-      // considerar os vizinhos ainda — guardada em baseX/baseY/baseT/baseScale
-      // pra a resolução de sobreposição (passo 2) usar.
+      // Presença (0..1) de cada card sempre roda (é barata, O(n)) — é o que
+      // faz o globo sumir com fade ao trocar pro modo Galeria. O resto do
+      // cálculo de posição (física da órbita + resolução de sobreposição,
+      // bem mais caro) só roda de verdade no modo Orbital: sem esse corte,
+      // os cards continuavam sendo recalculados em segundo plano mesmo
+      // escondidos, competindo pela thread principal com a rolagem/encaixe
+      // suave da galeria — dava pra ver o item "ativo" do carrossel derivar
+      // sozinho por causa disso.
+      const orbitalActive = modeRef.current === "orbital";
       for (let i = 0; i < cases.length; i++) {
         const el = cardRefs.current[i];
-        const b = bodies[i];
-        if (!el || !b) continue;
-
-        // Presença (0..1): quem sai do filtro some com fade; quem entra
-        // aparece. Escondido de vez (sem custo nem clique) quando ~0.
-        const targetPresence =
-          matchRef.current[i] && modeRef.current === "orbital" ? 1 : 0;
+        if (!el) continue;
+        const targetPresence = matchRef.current[i] && orbitalActive ? 1 : 0;
         presence.current[i] +=
           (targetPresence - presence.current[i]) * (1 - Math.exp(-dt * 6));
         const pr = presence.current[i];
         if (pr < 0.01) {
           el.style.visibility = "hidden";
-          continue;
+          el.style.pointerEvents = "none";
+        } else {
+          el.style.visibility = "visible";
+          // Cada card recebe seu próprio `pointer-events` aqui (não dá pra
+          // confiar só no `pointer-events-none` do palco pai: um filho com
+          // `auto` sempre vence o `none` do ancestral). Por isso o card só
+          // fica clicável depois que a janelinha do puppet estacionou no
+          // canto (`dockedRef`) — sem isso, um clique durante a animação do
+          // portal podia cair sobre um card e abrir o case sem querer.
+          el.style.pointerEvents =
+            pr > 0.5 && dockedRef.current ? "auto" : "none";
         }
-        el.style.visibility = "visible";
-        // Cada card recebe seu próprio `pointer-events` aqui (não dá pra
-        // confiar só no `pointer-events-none` do palco pai: um filho com
-        // `auto` sempre vence o `none` do ancestral). Por isso o card só
-        // fica clicável depois que a janelinha do puppet estacionou no
-        // canto (`dockedRef`) — sem isso, um clique durante a animação do
-        // portal podia cair sobre um card e abrir o case sem querer.
-        el.style.pointerEvents =
-          pr > 0.5 && dockedRef.current ? "auto" : "none";
-
-        // Ponto na esfera: acompanha suavemente o novo ponto quando o filtro
-        // redistribui os cards (senão os que ficam "teletransportariam").
-        const cp = pointsCur.current[i];
-        const tp = pointsTarget.current[i];
-        const kp = 1 - Math.exp(-dt * 3.5);
-        cp.x += (tp.x - cp.x) * kp;
-        cp.y += (tp.y - cp.y) * kp;
-        cp.z += (tp.z - cp.z) * kp;
-        const len = Math.hypot(cp.x, cp.y, cp.z) || 1;
-        const pt = { x: cp.x / len, y: cp.y / len, z: cp.z / len };
-
-        // Mola do card atrás da rotação global (2 subpassos: estável mesmo
-        // com quadros longos).
-        const hStep = dt / 2;
-        for (let sub = 0; sub < 2; sub++) {
-          b.vy += (b.k * (st.yaw - b.yaw) - b.c * b.vy) * hStep;
-          b.yaw += b.vy * hStep;
-          b.vp += (b.k * (st.pitch - b.pitch) - b.c * b.vp) * hStep;
-          b.pitch += b.vp * hStep;
-        }
-
-        // Órbita própria + rotação global (com atraso) + flutuação própria.
-        const q = axisRotate(pt, b.axis, b.phase + b.omega * st.orbitT);
-        const p = rotate(q, b.yaw, b.pitch);
-        const wx = Math.sin(st.orbitT * b.wf1 + b.wp1) * 0.05;
-        const wy = Math.sin(st.orbitT * b.wf2 + b.wp2) * 0.05;
-
-        const t = clamp01((p.z + 1) / 2); // 0 = atrás, 1 = frente
-        const persp = 0.6 + 0.4 * t; // aproxima do centro quem está longe
-        // Variação de tamanho por profundidade mais contida (0.62–1.0, era
-        // 0.45–1.0): na referência os cards da frente não crescem tanto —
-        // isso por si só reduz bastante a área que dois cards grandes podem
-        // ocupar em comum quando se cruzam.
-        const scale = (0.62 + 0.38 * t) * b.size * (0.75 + 0.25 * pr);
-        el.style.width = `${cardW}px`;
-        baseX.current[i] = (p.x * b.radius + wx) * rx * persp;
-        baseY.current[i] = (p.y * b.radius + wy) * ry * persp;
-        baseT.current[i] = t;
-        baseScale.current[i] = scale;
-        // Profundidade = desfoque + ESCURECIMENTO (como na referência): os
-        // cards de trás continuam opacos — um cobre o outro — só ficam
-        // escuros e borrados. A opacidade só entra na transição do filtro
-        // de categorias (`pr`).
-        const dim = 0.2 + 0.8 * Math.pow(t, 0.85);
-        el.style.opacity = String(pr);
-        el.style.filter = `blur(${(Math.pow(1 - t, 1.3) * 10).toFixed(2)}px) brightness(${dim.toFixed(3)})`;
-        el.style.zIndex = String(Math.round(t * 100));
       }
 
-      // Passo 2: resolução de sobreposição em tela, relaxada em algumas
-      // iterações DENTRO do mesmo quadro (não só 1 passada). Com só 1
-      // passada, resolver a sobreposição contra um vizinho podia empurrar o
-      // card direto pra cima de um TERCEIRO (efeito toca-toca) — comum
-      // quando 3+ cards grandes se cruzam perto do centro. Card em primeiro
-      // plano (t alto) "pesa" mais e cede menos; o de trás é quem desvia na
-      // maior parte.
-      const avoidMax = cardW * AVOID_MAX_FACTOR;
-      const decay = Math.pow(0.985, dt * 60);
-      for (let i = 0; i < cases.length; i++) {
-        // Parte de onde o card já estava (decaindo um pouco a cada quadro,
-        // pra voltar sozinho à órbita normal quando ninguém mais sobrepõe).
-        workX.current[i] = bodies[i].avoidX * decay;
-        workY.current[i] = bodies[i].avoidY * decay;
-      }
-      const RELAX_ITERS = 3;
-      for (let iter = 0; iter < RELAX_ITERS; iter++) {
-        corrX.current.fill(0);
-        corrY.current.fill(0);
+      if (orbitalActive) {
         for (let i = 0; i < cases.length; i++) {
-          if (!cardRefs.current[i] || presence.current[i] < 0.01) continue;
-          // Metade-largura/altura reais do card (aspect 4/3) — usadas como
-          // uma ELIPSE (não um círculo): um círculo baseado só na altura
-          // deixava muita margem sobrando nas laterais, já que o card é bem
-          // mais largo que alto.
-          const hwi = cardW * baseScale.current[i] * 0.5 * AVOID_PACK;
-          const hhi = hwi * 0.75;
-          const exi = baseX.current[i] + workX.current[i];
-          const eyi = baseY.current[i] + workY.current[i];
-          for (let j = i + 1; j < cases.length; j++) {
-            if (!cardRefs.current[j] || presence.current[j] < 0.01) continue;
-            const hwj = cardW * baseScale.current[j] * 0.5 * AVOID_PACK;
-            const hhj = hwj * 0.75;
-            const exj = baseX.current[j] + workX.current[j];
-            const eyj = baseY.current[j] + workY.current[j];
-            const dx = exj - exi;
-            const dy = eyj - eyi;
-            const dist = Math.hypot(dx, dy);
-            // Distância normalizada pela elipse combinada: <1 = sobrepondo.
-            const nx = dx / (hwi + hwj);
-            const ny = dy / (hhi + hhj);
-            const ndist = Math.hypot(nx, ny);
-            if (ndist >= 1) continue;
-            // Concêntricos (dist~0): direção determinística (não aleatória),
-            // pra não tremer entre quadros.
-            const ang = dist > 0.5 ? 0 : (i * 7 + j * 13) * 0.9;
-            const ux = dist > 0.5 ? dx / dist : Math.cos(ang);
-            const uy = dist > 0.5 ? dy / dist : Math.sin(ang);
-            // Quanto empurrar ao longo de (dx,dy) pra normalizar a
-            // distância elíptica até 1 (fronteira das elipses).
-            const overlap =
-              dist > 0.5
-                ? dist * (1 / Math.max(ndist, 1e-4) - 1)
-                : Math.max(hwi + hwj, hhi + hhj) * (1 - ndist);
-            const wi = cardWeight(baseT.current[i]);
-            const wj = cardWeight(baseT.current[j]);
-            const moveI = overlap * (wj / (wi + wj));
-            const moveJ = overlap * (wi / (wi + wj));
-            corrX.current[i] -= ux * moveI;
-            corrY.current[i] -= uy * moveI;
-            corrX.current[j] += ux * moveJ;
-            corrY.current[j] += uy * moveJ;
+          const el = cardRefs.current[i];
+          const b = bodies[i];
+          const pr = presence.current[i];
+          if (!el || !b || pr < 0.01) continue;
+
+          // Ponto na esfera: acompanha suavemente o novo ponto quando o filtro
+          // redistribui os cards (senão os que ficam "teletransportariam").
+          const cp = pointsCur.current[i];
+          const tp = pointsTarget.current[i];
+          const kp = 1 - Math.exp(-dt * 3.5);
+          cp.x += (tp.x - cp.x) * kp;
+          cp.y += (tp.y - cp.y) * kp;
+          cp.z += (tp.z - cp.z) * kp;
+          const len = Math.hypot(cp.x, cp.y, cp.z) || 1;
+          const pt = { x: cp.x / len, y: cp.y / len, z: cp.z / len };
+
+          // Mola do card atrás da rotação global (2 subpassos: estável mesmo
+          // com quadros longos).
+          const hStep = dt / 2;
+          for (let sub = 0; sub < 2; sub++) {
+            b.vy += (b.k * (st.yaw - b.yaw) - b.c * b.vy) * hStep;
+            b.yaw += b.vy * hStep;
+            b.vp += (b.k * (st.pitch - b.pitch) - b.c * b.vp) * hStep;
+            b.pitch += b.vp * hStep;
+          }
+
+          // Órbita própria + rotação global (com atraso) + flutuação própria.
+          const q = axisRotate(pt, b.axis, b.phase + b.omega * st.orbitT);
+          const p = rotate(q, b.yaw, b.pitch);
+          const wx = Math.sin(st.orbitT * b.wf1 + b.wp1) * 0.05;
+          const wy = Math.sin(st.orbitT * b.wf2 + b.wp2) * 0.05;
+
+          const t = clamp01((p.z + 1) / 2); // 0 = atrás, 1 = frente
+          const persp = 0.6 + 0.4 * t; // aproxima do centro quem está longe
+          // Variação de tamanho por profundidade mais contida (0.62–1.0, era
+          // 0.45–1.0): na referência os cards da frente não crescem tanto —
+          // isso por si só reduz bastante a área que dois cards grandes podem
+          // ocupar em comum quando se cruzam.
+          const scale = (0.62 + 0.38 * t) * b.size * (0.75 + 0.25 * pr);
+          el.style.width = `${cardW}px`;
+          baseX.current[i] = (p.x * b.radius + wx) * rx * persp;
+          baseY.current[i] = (p.y * b.radius + wy) * ry * persp;
+          baseT.current[i] = t;
+          baseScale.current[i] = scale;
+          // Profundidade = desfoque + ESCURECIMENTO (como na referência): os
+          // cards de trás continuam opacos — um cobre o outro — só ficam
+          // escuros e borrados. A opacidade só entra na transição do filtro
+          // de categorias (`pr`).
+          const dim = 0.2 + 0.8 * Math.pow(t, 0.85);
+          el.style.opacity = String(pr);
+          el.style.filter = `blur(${(Math.pow(1 - t, 1.3) * 10).toFixed(2)}px) brightness(${dim.toFixed(3)})`;
+          el.style.zIndex = String(Math.round(t * 100));
+        }
+
+        // Passo 2: resolução de sobreposição em tela, relaxada em algumas
+        // iterações DENTRO do mesmo quadro (não só 1 passada). Com só 1
+        // passada, resolver a sobreposição contra um vizinho podia empurrar o
+        // card direto pra cima de um TERCEIRO (efeito toca-toca) — comum
+        // quando 3+ cards grandes se cruzam perto do centro. Card em primeiro
+        // plano (t alto) "pesa" mais e cede menos; o de trás é quem desvia na
+        // maior parte.
+        const avoidMax = cardW * AVOID_MAX_FACTOR;
+        const decay = Math.pow(0.985, dt * 60);
+        for (let i = 0; i < cases.length; i++) {
+          // Parte de onde o card já estava (decaindo um pouco a cada quadro,
+          // pra voltar sozinho à órbita normal quando ninguém mais sobrepõe).
+          workX.current[i] = bodies[i].avoidX * decay;
+          workY.current[i] = bodies[i].avoidY * decay;
+        }
+        const RELAX_ITERS = 3;
+        for (let iter = 0; iter < RELAX_ITERS; iter++) {
+          corrX.current.fill(0);
+          corrY.current.fill(0);
+          for (let i = 0; i < cases.length; i++) {
+            if (!cardRefs.current[i] || presence.current[i] < 0.01) continue;
+            // Metade-largura/altura reais do card (aspect 4/3) — usadas como
+            // uma ELIPSE (não um círculo): um círculo baseado só na altura
+            // deixava muita margem sobrando nas laterais, já que o card é bem
+            // mais largo que alto.
+            const hwi = cardW * baseScale.current[i] * 0.5 * AVOID_PACK;
+            const hhi = hwi * 0.75;
+            const exi = baseX.current[i] + workX.current[i];
+            const eyi = baseY.current[i] + workY.current[i];
+            for (let j = i + 1; j < cases.length; j++) {
+              if (!cardRefs.current[j] || presence.current[j] < 0.01) continue;
+              const hwj = cardW * baseScale.current[j] * 0.5 * AVOID_PACK;
+              const hhj = hwj * 0.75;
+              const exj = baseX.current[j] + workX.current[j];
+              const eyj = baseY.current[j] + workY.current[j];
+              const dx = exj - exi;
+              const dy = eyj - eyi;
+              const dist = Math.hypot(dx, dy);
+              // Distância normalizada pela elipse combinada: <1 = sobrepondo.
+              const nx = dx / (hwi + hwj);
+              const ny = dy / (hhi + hhj);
+              const ndist = Math.hypot(nx, ny);
+              if (ndist >= 1) continue;
+              // Concêntricos (dist~0): direção determinística (não aleatória),
+              // pra não tremer entre quadros.
+              const ang = dist > 0.5 ? 0 : (i * 7 + j * 13) * 0.9;
+              const ux = dist > 0.5 ? dx / dist : Math.cos(ang);
+              const uy = dist > 0.5 ? dy / dist : Math.sin(ang);
+              // Quanto empurrar ao longo de (dx,dy) pra normalizar a
+              // distância elíptica até 1 (fronteira das elipses).
+              const overlap =
+                dist > 0.5
+                  ? dist * (1 / Math.max(ndist, 1e-4) - 1)
+                  : Math.max(hwi + hwj, hhi + hhj) * (1 - ndist);
+              const wi = cardWeight(baseT.current[i]);
+              const wj = cardWeight(baseT.current[j]);
+              const moveI = overlap * (wj / (wi + wj));
+              const moveJ = overlap * (wi / (wi + wj));
+              corrX.current[i] -= ux * moveI;
+              corrY.current[i] -= uy * moveI;
+              corrX.current[j] += ux * moveJ;
+              corrY.current[j] += uy * moveJ;
+            }
+          }
+          // Só uma fração da correção por iteração (não o valor cheio): evita
+          // que a relaxação "atire longe demais" quando há vários vizinhos
+          // empurrando o mesmo card em direções diferentes.
+          for (let i = 0; i < cases.length; i++) {
+            if (presence.current[i] < 0.01) continue;
+            workX.current[i] = clamp(
+              workX.current[i] + corrX.current[i] * 0.6,
+              -avoidMax,
+              avoidMax,
+            );
+            workY.current[i] = clamp(
+              workY.current[i] + corrY.current[i] * 0.6,
+              -avoidMax,
+              avoidMax,
+            );
           }
         }
-        // Só uma fração da correção por iteração (não o valor cheio): evita
-        // que a relaxação "atire longe demais" quando há vários vizinhos
-        // empurrando o mesmo card em direções diferentes.
-        for (let i = 0; i < cases.length; i++) {
-          if (presence.current[i] < 0.01) continue;
-          workX.current[i] = clamp(
-            workX.current[i] + corrX.current[i] * 0.6,
-            -avoidMax,
-            avoidMax,
-          );
-          workY.current[i] = clamp(
-            workY.current[i] + corrY.current[i] * 0.6,
-            -avoidMax,
-            avoidMax,
-          );
-        }
-      }
 
-      // Passo 3: suaviza a transição até o desvio relaxado (evita que ele
-      // "salte" de um quadro pro outro) e escreve a posição final.
-      const followUp = 1 - Math.exp(-dt * 14);
-      for (let i = 0; i < cases.length; i++) {
-        const el = cardRefs.current[i];
-        const b = bodies[i];
-        if (!el || !b || presence.current[i] < 0.01) continue;
-        b.avoidX += (workX.current[i] - b.avoidX) * followUp;
-        b.avoidY += (workY.current[i] - b.avoidY) * followUp;
-        el.style.transform = `translate3d(${baseX.current[i] + b.avoidX}px, ${baseY.current[i] + b.avoidY}px, 0) translate(-50%, -50%) scale(${baseScale.current[i]})`;
+        // Passo 3: suaviza a transição até o desvio relaxado (evita que ele
+        // "salte" de um quadro pro outro) e escreve a posição final.
+        const followUp = 1 - Math.exp(-dt * 14);
+        for (let i = 0; i < cases.length; i++) {
+          const el = cardRefs.current[i];
+          const b = bodies[i];
+          if (!el || !b || presence.current[i] < 0.01) continue;
+          b.avoidX += (workX.current[i] - b.avoidX) * followUp;
+          b.avoidY += (workY.current[i] - b.avoidY) * followUp;
+          el.style.transform = `translate3d(${baseX.current[i] + b.avoidX}px, ${baseY.current[i] + b.avoidY}px, 0) translate(-50%, -50%) scale(${baseScale.current[i]})`;
+        }
       }
 
       // Cursor (bolinha) seguindo o mouse com suavização.
@@ -1602,112 +1952,21 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
               <ModeToggle value={mode} onChange={setMode} />
             </div>
 
-            {/* Modo lista: cada case numa linha (miniatura + texto), rolagem
-                interna (a página em si não rola) e o mesmo filtro. Clicar
-                abre a mesma visão em destaque do globo. */}
+            {/* Galeria/carrossel (a antiga "Lista"): filme horizontal com um
+                case em destaque no centro, rolagem interna (a página em si
+                não rola) e o mesmo filtro. */}
             <AnimatePresence>
               {mode === "lista" && revealed && (
                 <motion.div
                   key="lista"
-                  data-list-scroll
-                  data-lenis-prevent
-                  className="absolute inset-x-0 bottom-0 z-[20] overflow-y-auto [scrollbar-color:rgba(255,255,255,0.25)_transparent] [scrollbar-width:thin]"
+                  className="absolute inset-x-0 bottom-0 z-[20]"
                   style={{ top: "calc(var(--nav-h, 0px) + 84px)" }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
-                  onPointerDown={(e) => e.stopPropagation()}
                 >
-                  <motion.ul
-                    key={category}
-                    className="mx-auto flex max-w-5xl flex-col gap-3 px-8 pb-10 pt-2"
-                    initial="hidden"
-                    animate="show"
-                    variants={{
-                      show: { transition: { staggerChildren: 0.06 } },
-                    }}
-                  >
-                    {cases
-                      .map((c, i) => ({ c, i }))
-                      .filter(
-                        ({ c }) =>
-                          category === ALL || c.categorias.includes(category),
-                      )
-                      .map(({ c, i }) => (
-                        <motion.li
-                          key={c.id}
-                          variants={{
-                            hidden: { opacity: 0, y: 18 },
-                            show: { opacity: 1, y: 0 },
-                          }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                        >
-                          <Link
-                            href={`/cases/${c.slug}`}
-                            onClick={(e) => {
-                              if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-                              e.preventDefault();
-                              setOpenIndex(i);
-                              sayCase(c);
-                            }}
-                            className="group flex items-center gap-6 rounded-2xl border border-white/10 bg-white/[0.04] p-3 pr-6 outline-none backdrop-blur-sm transition-colors hover:border-[#66fcf1]/50 hover:bg-white/[0.08] focus-visible:ring-2 focus-visible:ring-[#66fcf1]"
-                          >
-                            <div
-                              className="relative aspect-[4/3] w-44 shrink-0 overflow-hidden rounded-xl"
-                              style={{
-                                backgroundColor: getCaseBgColor(c.slug, i),
-                              }}
-                            >
-                              {c.capa_url ? (
-                                <Image
-                                  src={c.capa_url}
-                                  alt=""
-                                  fill
-                                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                                  sizes="176px"
-                                />
-                              ) : (
-                                <div className="grid h-full place-items-center px-3 text-center text-xs font-black text-white">
-                                  {c.titulo}
-                                </div>
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              {c.cliente && (
-                                <p className="text-xs font-bold uppercase tracking-widest text-[#66fcf1]">
-                                  {c.cliente}
-                                </p>
-                              )}
-                              <h2 className="mt-1 text-xl font-black leading-tight text-white">
-                                {c.titulo}
-                              </h2>
-                              {c.resumo && (
-                                <p className="mt-1.5 line-clamp-2 max-w-2xl text-sm text-white/60">
-                                  {c.resumo}
-                                </p>
-                              )}
-                              {c.categorias.length > 0 && (
-                                <div className="mt-3 flex flex-wrap gap-1.5">
-                                  {c.categorias.map((cat) => (
-                                    <span
-                                      key={cat}
-                                      className="rounded-full border border-white/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white/60"
-                                    >
-                                      {cat}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                            <ArrowUpRight
-                              size={22}
-                              className="shrink-0 text-white/40 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#66fcf1]"
-                            />
-                          </Link>
-                        </motion.li>
-                      ))}
-                  </motion.ul>
+                  <GalleryCarousel cases={cases} category={category} />
                 </motion.div>
               )}
             </AnimatePresence>
