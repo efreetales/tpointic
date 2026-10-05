@@ -1,8 +1,12 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import { CheckSurveyStats } from "@/components/check-survey-stats";
 import { getCaseFlareColor } from "@/lib/case-colors";
+import { usePanelBounce, PanelWaveCap } from "@/components/panel-bounce";
 
 // Painel extra do carrossel de cases em destaque da home
 // (`CaseParallaxShowcase`) — o case de liderança no mesmo formato sticky dos
@@ -15,11 +19,17 @@ const ML_LOGO =
   "https://drjbumieuwuzsjlpqwxg.supabase.co/storage/v1/object/public/site/clientes/mercado-livre-logo-8-1.png";
 
 export function LeadershipPanel() {
+  // `isFirst=false`: este painel sempre vem depois dos cases no carrossel,
+  // então sempre recebe o "estica com bounce" do topo (ver `panel-bounce.tsx`).
+  const { panelRef, wavePath, imgYMV } = usePanelBounce(false);
+
   return (
     <div
+      ref={panelRef}
       className="sticky top-0 flex h-screen w-full flex-col lg:flex-row"
       style={{ backgroundColor: BG }}
     >
+      <PanelWaveCap bgColor={BG} wavePath={wavePath} />
       <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
         {/* Selo branco: o wordmark "mercado livre" é azul-marinho e some
             direto num fundo escuro. */}
@@ -66,9 +76,9 @@ export function LeadershipPanel() {
             style={{ backgroundColor: getCaseFlareColor(BG) }}
           />
         </div>
-        <div className="relative">
+        <motion.div className="relative" style={{ y: imgYMV }}>
           <CheckSurveyStats />
-        </div>
+        </motion.div>
       </div>
     </div>
   );

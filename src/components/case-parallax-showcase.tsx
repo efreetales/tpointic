@@ -1,14 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
-import { motion, useMotionValue, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { CasePanelTracker } from "@/components/case-panel-tracker";
 import { TrackedCaseLink } from "@/components/tracked-case-link";
 import { ArrowUpRight } from "@mynaui/icons-react";
 import type { Case } from "@/lib/cases";
 import { MacbookVideo } from "@/components/macbook-screens";
 import { getCaseBgColor, getCaseFlareColor } from "@/lib/case-colors";
+import { usePanelBounce, PanelWaveCap } from "@/components/panel-bounce";
 
 // Same sticky-stack parallax pattern used inside case pages for the impact
 // gallery (`case-body.tsx`) — each panel covers the previous one while
@@ -47,26 +47,10 @@ const PANEL_IMG_NATURAL: Record<
 // vez da imagem de capa. A capa continua sendo o fallback (sem vídeo .mp4).
 const PANEL_MACBOOK_VIDEO = new Set(["pet-ia"]);
 
-// Altura reservada acima de cada painel pra caber a cúpula do "estica com
-// bounce" (referência: gravity-design.de, bloco "Manifest" logo após o
-// hero — o topo do painel que está cobrindo o anterior estica pra cima
-// numa curva elástica e assenta, em vez de simplesmente deslizar reto).
-//
-// Importante: nada acima de y=0 da viewport é visível (é literalmente pra
-// fora da tela), então a cúpula só pode aparecer ENQUANTO o painel ainda
-// está se aproximando do topo (top > 0, ainda em fluxo normal, antes de
-// grudar via `sticky`) — nunca depois que ele já colou em top:0. Por isso o
-// gatilho é a posição de scroll (quão perto o painel está de colar), não um
-// "acabou de colar", e a amplitude nunca passa de `top` (senão a cúpula
-// vazaria pra fora da tela).
-const WAVE_CAP_H = 220;
-const WAVE_APPROACH = 480; // px de scroll antes de colar em que a animação toca
-const WAVE_DOME_PX = 130; // pico da cúpula
-// Quanto a imagem do case arrasta (em px) enquanto o painel dela está fixo
-// no topo sendo coberto pelo próximo — mesma ideia de profundidade de um
-// parallax clássico, só que escopada exatamente à janela de scroll em que
-// o painel fica pinado (e não a página toda).
-const PARALLAX_PX = 140;
+// O "estica com bounce" do topo + o parallax do conteúdo (referência:
+// gravity-design.de, bloco "Manifest" logo após o hero) vivem em
+// `panel-bounce.tsx`, compartilhados com `LeadershipPanel` — os dois fazem
+// parte do MESMO carrossel sticky-stack da home.
 
 function CasePanel({
   c,
@@ -79,78 +63,7 @@ function CasePanel({
   bgColor: string;
   isFirst: boolean;
 }) {
-  const panelRef = useRef<HTMLDivElement>(null);
-  const waveMV = useMotionValue(0);
-  const imgYMV = useMotionValue(0);
-
-  // Posição "de fluxo normal" do painel (onde ele estaria sem o `sticky`),
-  // em coordenadas de documento. `offsetTop` não serve — é relativo ao
-  // ancestral posicionado mais próximo (o wrapper), não ao documento. E
-  // `rect.top` sozinho também não: enquanto pinado, o `sticky` trava
-  // `rect.top` em 0, escondendo a posição real. Mas fora dessa janela
-  // (`rect.top !== 0`, seja acima — ainda não chegou — ou abaixo — já
-  // passou), `scrollY + rect.top` SEMPRE dá a posição real; guardamos esse
-  // valor toda vez que ele estiver disponível, e reaproveitamos enquanto o
-  // painel estiver com `rect.top` grudado em 0.
-  const docTopRef = useRef<number | null>(null);
-
-  // Um único loop por painel cuida de duas coisas, ambas função direta da
-  // posição real de scroll (nunca um "disparo" no tempo, então funciona
-  // igual rolando rápido/devagar, com trackpad ou roda do mouse):
-  //
-  // 1) Cúpula do bounce, enquanto o painel ainda está se aproximando do
-  //    topo (`top` positivo, dentro da janela `WAVE_APPROACH`) — um seno
-  //    simples dá o "sobe e desce"; um segundo termo menor e defasado dá a
-  //    ondulação extra do "bounce" ao assentar.
-  // 2) Parallax da imagem, ao longo de TODA a janela em que o painel está
-  //    pinado no topo: como cada painel tem exatamente 100vh, o PRÓXIMO já
-  //    está entrando/cobrindo por baixo desde o instante em que este gruda
-  //    no topo até o instante em que o próximo também gruda — não é uma
-  //    fase separada "depois" de pinar. `rect.top` deste painel fica 0 o
-  //    tempo todo aí (não serve); o progresso certo vem do scroll global
-  //    relativo à posição de fluxo normal (`docTopRef`).
-  useEffect(() => {
-    let raf = 0;
-    const tick = () => {
-      const el = panelRef.current;
-      if (el) {
-        const top = el.getBoundingClientRect().top;
-        if (top !== 0) docTopRef.current = window.scrollY + top;
-
-        if (!isFirst) {
-          const clampedTop = Math.max(0, Math.min(WAVE_APPROACH, top));
-          const progress = 1 - clampedTop / WAVE_APPROACH; // 0 = longe, 1 = colando
-          const raw =
-            WAVE_DOME_PX *
-            (Math.sin(progress * Math.PI) -
-              0.22 * progress * Math.sin(progress * Math.PI * 3));
-          // Nunca deixa a cúpula passar de `clampedTop`: além disso ela
-          // vazaria pra fora da viewport (ver nota acima da constante).
-          waveMV.set(Math.max(0, Math.min(clampedTop, raw)));
-        }
-        if (docTopRef.current !== null) {
-          const panelH = el.offsetHeight || window.innerHeight;
-          const coverProgress = Math.max(
-            0,
-            Math.min(1, (window.scrollY - docTopRef.current) / panelH),
-          );
-          imgYMV.set(coverProgress * -PARALLAX_PX);
-        }
-      }
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [isFirst, waveMV, imgYMV]);
-
-  const wavePath = useTransform(waveMV, (v) => {
-    // Trava a crista dentro da própria altura reservada (`WAVE_CAP_H`): o
-    // spring pode passar um pouco do alvo (é o que dá o "bounce"), mas sem
-    // isso um overshoot maior estourava o viewBox do SVG e cortava a curva.
-    const dome = Math.min(Math.max(0, v), WAVE_CAP_H - 10);
-    return `M0,${WAVE_CAP_H} Q50,${WAVE_CAP_H - dome} 100,${WAVE_CAP_H} Z`;
-  });
-
+  const { panelRef, wavePath, imgYMV } = usePanelBounce(isFirst);
   const img = PANEL_IMG_NATURAL[c.slug];
 
   return (
@@ -160,17 +73,7 @@ function CasePanel({
       className="sticky top-0 flex h-screen w-full flex-col lg:flex-row"
       style={{ backgroundColor: bgColor }}
     >
-      {!isFirst && (
-        <svg
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 z-20"
-          style={{ top: -WAVE_CAP_H, height: WAVE_CAP_H, width: "100%" }}
-          viewBox={`0 0 100 ${WAVE_CAP_H}`}
-          preserveAspectRatio="none"
-        >
-          <motion.path fill={bgColor} d={wavePath} />
-        </svg>
-      )}
+      {!isFirst && <PanelWaveCap bgColor={bgColor} wavePath={wavePath} />}
 
       <CasePanelTracker slug={c.slug} position={i + 1} />
       <div className="flex flex-1 flex-col justify-center px-6 py-10 lg:w-[38%] lg:flex-none lg:px-16">
