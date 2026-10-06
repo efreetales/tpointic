@@ -217,6 +217,11 @@ export function AiLabHub() {
                     Nasceu em{" "}
                     <span style={{ color: s.accent }}>{s.origem}</span>
                   </p>
+                  {s.aviso && (
+                    <p className="mt-3 rounded-lg bg-bg px-3 py-2 text-xs text-slate">
+                      {s.aviso}
+                    </p>
+                  )}
                   {s.download && (
                     <a
                       href={s.download}

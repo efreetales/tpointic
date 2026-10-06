@@ -74,6 +74,8 @@ export type LabSkill = {
   accent: string;
   // Quando existe, a skill já está disponível para baixar (.zip).
   download?: string;
+  // Aviso curto exibido no card (ex.: requisito de conta paga).
+  aviso?: string;
 };
 
 // Skills sem `download` aparecem como "em breve".
@@ -85,6 +87,8 @@ export const LAB_SKILLS: LabSkill[] = [
     origem: "Bicharada Cantante",
     accent: "#FFD54A",
     download: "/skills/jogo-infantil-com-vozes.zip",
+    aviso:
+      "Usa a sua própria conta do ElevenLabs (plano pago para uso comercial). Nenhuma chave vai junto.",
   },
   {
     nome: "Videoclipe a partir de vídeos de IA",
