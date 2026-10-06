@@ -1,0 +1,25 @@
+{
+  "modelo": "eleven_v4",
+  "idioma": "por",
+  "saida": "audios",
+  "tentativas": 3,
+  "personagens": {
+    "caca": { "voice_id": "COLE_O_ID_DA_VOZ", "stability": 0.3, "similarity_boost": 0.5, "style": 1.0, "speed": 0.9 },
+    "zeca": { "voice_id": "COLE_O_ID_DA_VOZ", "stability": 0.9, "similarity_boost": 0.8, "style": 0.0, "speed": 0.85 }
+  },
+  "falas": [
+    { "id": "abertura_caca", "quem": "caca", "texto": "Oie! Eu sou a Cacá. A capivara!" },
+    { "id": "r1_resposta_zeca", "quem": "zeca", "texto": "É uma ma-nga! Manga!", "tempos": true }
+  ],
+  "musicas": [
+    {
+      "id": "m1_tema",
+      "duracao_ms": 60000,
+      "prompt": "Música infantil brasileira alegre e dançante, 112 bpm, vozes de criança cantando em português: Pula, pula, a Cacá chegou!",
+      "letra": "Pula, pula, a Cacá chegou! ..."
+    }
+  ],
+  "efeitos": [
+    { "id": "sfx_palma", "texto": "One soft warm hand clap, gentle and round, children's cartoon sound effect, no music, no voices", "duracao_s": 1.0 }
+  ]
+}

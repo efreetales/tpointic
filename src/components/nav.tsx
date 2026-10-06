@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "@mynaui/icons-react";
+import { Menu, Sparkles, X } from "@mynaui/icons-react";
 import { Logo } from "@/components/logo";
+import { AI_LAB_NAME } from "@/lib/ai-lab";
 
-const LINKS = [
+const LINKS: { href: string; label: string; highlight?: boolean }[] = [
   { href: "/", label: "Home" },
   { href: "/sobre", label: "Sobre" },
   { href: "/cases", label: "Cases" },
+  { href: "/ai-lab", label: AI_LAB_NAME, highlight: true },
   { href: "/lideranca", label: "Liderança" },
   { href: "/treinamentos", label: "Treinamentos" },
   { href: "/contato", label: "Contato" },
@@ -19,6 +21,26 @@ const LINKS = [
 // fundo escuro padrão do site — o header precisa nascer transparente/claro
 // sobre elas e virar sólido normal assim que o usuário rola além do hero.
 const TRANSPARENT_HERO_PATHS = ["/", "/cases"];
+
+// Item de menu em destaque (AI Lab): brilho correndo no texto, faísca que
+// pisca e um ponto pulsante de "novidade".
+function LabLabel({ label, light }: { label: string; light: boolean }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Sparkles
+        size={15}
+        className={`lab-spark ${light ? "text-[#7c3aed]" : "text-[#a78bfa]"}`}
+      />
+      <span className={`lab-text font-black ${light ? "lab-text--light" : ""}`}>
+        {label}
+      </span>
+      <span className="relative flex h-2 w-2" aria-hidden>
+        <span className="lab-ping absolute inline-flex h-full w-full rounded-full bg-[#f472b6] opacity-75" />
+        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#f472b6]" />
+      </span>
+    </span>
+  );
+}
 
 export function Nav() {
   const pathname = usePathname();
@@ -52,9 +74,13 @@ export function Nav() {
     // "rolagem virtual" (ver `cases-orbit-hero.tsx`). Quem controla o estilo
     // do menu é o próprio hero, via o evento `hero:past` (true = o portal
     // já começou a abrir, menu vira o estilo escuro).
-    if (pathname === "/cases" && window.matchMedia("(min-width: 1024px)").matches) {
+    if (
+      pathname === "/cases" &&
+      window.matchMedia("(min-width: 1024px)").matches
+    ) {
       setPastHero(document.documentElement.dataset.heroPast === "1");
-      const onHero = (e: Event) => setPastHero((e as CustomEvent<boolean>).detail);
+      const onHero = (e: Event) =>
+        setPastHero((e as CustomEvent<boolean>).detail);
       window.addEventListener("hero:past", onHero);
       return () => window.removeEventListener("hero:past", onHero);
     }
@@ -99,7 +125,10 @@ export function Nav() {
     if (!headerRef.current) return;
     const el = headerRef.current;
     const update = () => {
-      document.documentElement.style.setProperty("--nav-h", `${el.offsetHeight}px`);
+      document.documentElement.style.setProperty(
+        "--nav-h",
+        `${el.offsetHeight}px`,
+      );
     };
     update();
     const ro = new ResizeObserver(update);
@@ -113,7 +142,9 @@ export function Nav() {
     <header
       ref={headerRef}
       className={`sticky top-0 z-50 border-b transition-colors ${
-        transparentHero ? "border-transparent bg-transparent" : "border-border bg-bg/80 backdrop-blur"
+        transparentHero
+          ? "border-transparent bg-transparent"
+          : "border-border bg-bg/80 backdrop-blur"
       }`}
     >
       <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
@@ -121,7 +152,9 @@ export function Nav() {
           href="/"
           className={`flex items-center gap-2 ${transparentHero ? "text-[#1a1a1a]" : "text-navy"}`}
         >
-          <Logo className={`h-8 w-8 ${transparentHero ? "text-[#1a1a1a]" : "text-coral"}`} />
+          <Logo
+            className={`h-8 w-8 ${transparentHero ? "text-[#1a1a1a]" : "text-coral"}`}
+          />
           <span className="flex flex-col leading-tight">
             <span className="text-base font-black">TALES PEREIRA</span>
             <span
@@ -135,7 +168,7 @@ export function Nav() {
         </Link>
 
         <ul
-          className={`hidden items-center gap-x-7 text-sm font-bold sm:flex ${
+          className={`hidden items-center gap-x-4 text-sm lg:gap-x-7 font-bold sm:flex ${
             transparentHero ? "text-[#4a4a4a]" : "text-slate"
           }`}
         >
@@ -151,7 +184,11 @@ export function Nav() {
                       : `hover:text-coral ${active ? "text-coral" : ""}`
                   }`}
                 >
-                  {link.label}
+                  {link.highlight ? (
+                    <LabLabel label={link.label} light={transparentHero} />
+                  ) : (
+                    link.label
+                  )}
                   {active && (
                     <span
                       className={`absolute -bottom-1 left-0 h-0.5 w-full rounded-full ${
@@ -178,7 +215,9 @@ export function Nav() {
       {open && (
         <ul
           className={`flex flex-col gap-1 border-t px-6 py-4 text-sm font-bold sm:hidden ${
-            transparentHero ? "border-[#1a1a1a]/15 text-[#4a4a4a]" : "border-border text-slate"
+            transparentHero
+              ? "border-[#1a1a1a]/15 text-[#4a4a4a]"
+              : "border-border text-slate"
           }`}
         >
           {LINKS.map((link) => (
@@ -192,7 +231,11 @@ export function Nav() {
                     : `hover:text-coral ${pathname === link.href ? "text-coral" : ""}`
                 }`}
               >
-                {link.label}
+                {link.highlight ? (
+                  <LabLabel label={link.label} light={transparentHero} />
+                ) : (
+                  link.label
+                )}
               </Link>
             </li>
           ))}
