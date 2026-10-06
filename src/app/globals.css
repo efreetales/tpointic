@@ -232,13 +232,6 @@ body {
     opacity: 0.7;
   }
 }
-@keyframes lab-ping {
-  75%,
-  100% {
-    transform: scale(2.4);
-    opacity: 0;
-  }
-}
 @keyframes lab-float {
   0%,
   100% {
@@ -269,9 +262,6 @@ body {
 .lab-spark {
   animation: lab-twinkle 2.2s ease-in-out infinite;
 }
-.lab-ping {
-  animation: lab-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
 .lab-float {
   animation: lab-float var(--lab-dur, 6s) ease-in-out var(--lab-delay, 0s) infinite;
 }
@@ -282,7 +272,6 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .lab-text,
   .lab-spark,
-  .lab-ping,
   .lab-float,
   .lab-marquee-track {
     animation: none !important;

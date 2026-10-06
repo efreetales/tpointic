@@ -22,8 +22,8 @@ const LINKS: { href: string; label: string; highlight?: boolean }[] = [
 // sobre elas e virar sólido normal assim que o usuário rola além do hero.
 const TRANSPARENT_HERO_PATHS = ["/", "/cases"];
 
-// Item de menu em destaque (AI Lab): brilho correndo no texto, faísca que
-// pisca e um ponto pulsante de "novidade".
+// Item de menu em destaque (AI Lab): brilho correndo no texto e faísca que
+// pisca.
 function LabLabel({ label, light }: { label: string; light: boolean }) {
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -33,10 +33,6 @@ function LabLabel({ label, light }: { label: string; light: boolean }) {
       />
       <span className={`lab-text font-black ${light ? "lab-text--light" : ""}`}>
         {label}
-      </span>
-      <span className="relative flex h-2 w-2" aria-hidden>
-        <span className="lab-ping absolute inline-flex h-full w-full rounded-full bg-[#f472b6] opacity-75" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#f472b6]" />
       </span>
     </span>
   );
