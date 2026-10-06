@@ -1354,11 +1354,18 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
       if (saved === "orbital" || saved === "lista") setMode(saved);
     } catch {}
   }, []);
+  // Grava só quando o visitante troca o modo (não num efeito sobre `mode`):
+  // com o efeito, o valor inicial "orbital" era gravado antes de o salvo ser
+  // lido de novo (React Strict Mode em dev roda os efeitos duas vezes) e a
+  // preferência se perdia.
+  const changeMode = useCallback((m: ViewMode) => {
+    setMode(m);
+    try {
+      localStorage.setItem("cases-view", m);
+    } catch {}
+  }, []);
   useEffect(() => {
     modeRef.current = mode;
-    try {
-      localStorage.setItem("cases-view", mode);
-    } catch {}
     setHover(null);
     s.current.hovering = false;
   }, [mode]);
@@ -1949,7 +1956,7 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
                 value={category}
                 onChange={setCategory}
               />
-              <ModeToggle value={mode} onChange={setMode} />
+              <ModeToggle value={mode} onChange={changeMode} />
             </div>
 
             {/* Galeria/carrossel (a antiga "Lista"): filme horizontal com um
@@ -1959,7 +1966,13 @@ export function CasesOrbitHero({ cases }: { cases: Case[] }) {
               {mode === "lista" && revealed && (
                 <motion.div
                   key="lista"
-                  className="absolute inset-x-0 bottom-0 z-[20]"
+                  // A galeria aparece com o portal a 60%, mas só captura a
+                  // roda/cliques depois de o portal estacionar: antes disso
+                  // ela engolia a rolagem virtual (`stopPropagation`) e o
+                  // círculo do puppet parava antes do tamanho final.
+                  className={`absolute inset-x-0 bottom-0 z-[20] ${
+                    docked ? "" : "pointer-events-none"
+                  }`}
                   style={{ top: "calc(var(--nav-h, 0px) + 84px)" }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
