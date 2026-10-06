@@ -16,6 +16,7 @@ import {
   Users,
 } from "@mynaui/icons-react";
 import { Counter } from "@/components/counter";
+import { LabModel3D } from "@/components/lab-model-3d";
 import { LabVideo } from "@/components/lab-video";
 import { Reveal } from "@/components/reveal";
 import { labAsset } from "@/lib/ai-lab";
@@ -87,7 +88,7 @@ const STEPS = [
     icon: LayersTwo,
     titulo: "O que não rolou",
     texto:
-      "Tentei 3D com Tripo e Blender. Lindo, mas trabalho demais pra bicho que mexe a boca. Voltei pro 2D e segui.",
+      "Gerei a Cacá em 3D no Tripo e dei esqueleto, olhos e boca no Blender. Funcionou, mas cada bicho custaria dias. Voltei pro 2D e guardei tudo.",
     twist: true,
   },
   {
@@ -102,6 +103,126 @@ const STEPS = [
     texto: "GitHub, Vercel e pronto. De zero a online em um dia.",
   },
 ];
+
+const PINK = "#f472b6";
+
+const SPRITES = ["acenando", "falando", "dancando", "pulando", "dormindo"];
+
+function Figura({
+  src,
+  alt,
+  legenda,
+  w,
+  h,
+  className = "",
+}: {
+  src: string;
+  alt: string;
+  legenda: string;
+  w: number;
+  h: number;
+  className?: string;
+}) {
+  return (
+    <figure className={className}>
+      <div className="overflow-hidden rounded-xl border border-border">
+        <Image
+          src={labAsset(src)}
+          alt={alt}
+          width={w}
+          height={h}
+          sizes="(min-width: 768px) 560px, 100vw"
+          className="h-auto w-full transition-transform duration-700 hover:scale-[1.04]"
+        />
+      </div>
+      <figcaption className="mt-2 text-xs text-gray">{legenda}</figcaption>
+    </figure>
+  );
+}
+
+// Galeria do experimento 3D que não foi pro jogo: o processo também conta.
+function Experimento3D() {
+  return (
+    <div className="mt-6 space-y-6">
+      <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray">
+        {["Tripo", "Blender", "three.js"].map((t, i) => (
+          <span key={t} className="flex items-center gap-2">
+            {i > 0 && <span style={{ color: PINK }}>→</span>}
+            <span className="rounded-full border border-border px-2.5 py-1">
+              {t}
+            </span>
+          </span>
+        ))}
+      </div>
+
+      <div>
+        <div className="flex gap-2 rounded-xl bg-[#bde6f1]/90 p-3">
+          {SPRITES.map((n) => (
+            <Image
+              key={n}
+              src={labAsset(`bicharada/3d/sprite-${n}.webp`)}
+              alt={`Cacá em 3D, pose ${n}`}
+              width={160}
+              height={160}
+              className="h-auto w-1/5 transition-transform duration-300 hover:-translate-y-2"
+            />
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-gray">
+          1ª tentativa: poses renderizadas do modelo. Pulavam, mas a boca não
+          mexia.
+        </p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-[1fr_1.7fr]">
+        <Figura
+          src="bicharada/3d/tpose.webp"
+          alt="Modelo 3D da Cacá em T-pose, vista de frente e de lado"
+          legenda="2ª: modelo novo em T-pose, pronto pro esqueleto."
+          w={900}
+          h={900}
+        />
+        <div className="space-y-4">
+          <Figura
+            src="bicharada/3d/esqueleto.webp"
+            alt="Cacá em 3D em quatro poses com esqueleto"
+            legenda="Esqueleto no Blender: poses de verdade."
+            w={1400}
+            h={350}
+          />
+          <Figura
+            src="bicharada/3d/rosto.webp"
+            alt="Rosto da Cacá em 3D com os olhos abrindo e fechando"
+            legenda="Olhos que fecham, boca que abre."
+            w={1400}
+            h={350}
+          />
+          <Figura
+            src="bicharada/3d/boca.webp"
+            alt="Boca da Cacá em 3D em vários graus de abertura"
+            legenda="A boca em seis aberturas. Ficou ótimo, mas só pra Cacá."
+            w={1600}
+            h={229}
+          />
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-3 text-sm font-bold text-navy">
+          O modelo final: gire a Cacá e brinque
+        </p>
+        <LabModel3D
+          src={labAsset("bicharada/3d/caca.glb")}
+          poster={labAsset("bicharada/3d/tpose.webp")}
+        />
+        <p className="mt-2 text-xs text-gray">
+          O mesmo modelo que cheguei a colocar no jogo (2,2 MB). Esqueleto,
+          olhos e boca feitos no Blender.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function BicharadaPage() {
   return (
@@ -247,7 +368,7 @@ export default function BicharadaPage() {
                   <Reveal delay={0.05}>
                     <span
                       className="absolute -left-[calc(2rem+21px)] top-0 flex h-10 w-10 items-center justify-center rounded-full border-4 border-bg text-black sm:-left-[calc(3rem+21px)]"
-                      style={{ backgroundColor: s.twist ? "#f472b6" : GOLD }}
+                      style={{ backgroundColor: s.twist ? PINK : GOLD }}
                     >
                       <Icon size={20} />
                     </span>
@@ -265,6 +386,7 @@ export default function BicharadaPage() {
                         {s.titulo}
                       </h3>
                       <p className="mt-2 max-w-xl text-slate">{s.texto}</p>
+                      {s.twist && <Experimento3D />}
                       {s.shot && (
                         <div className="relative mt-5 overflow-hidden rounded-2xl border border-border">
                           <Image
