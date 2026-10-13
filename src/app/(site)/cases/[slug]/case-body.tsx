@@ -40,7 +40,8 @@ import { Phone3D } from "@/components/phone-3d";
 import { MacbookScreens } from "@/components/macbook-screens";
 import { Bleed } from "@/components/bleed";
 import { VideoIndex } from "@/components/video-index";
-import { isEstudoDeCaso, type Case, type Destaque, type PieChartData } from "@/lib/cases";
+import type { Case, Destaque, PieChartData } from "@/lib/cases";
+import { isEstudoDeCaso } from "@/lib/case-flags";
 import { SITE_NAME } from "@/lib/site";
 
 // Shared icon dictionary — used both by `steps` and `destaques.icon`, keyed
