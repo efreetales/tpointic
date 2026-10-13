@@ -277,3 +277,77 @@ body {
     animation: none !important;
   }
 }
+
+/* Case "Acesso delegado": órbita do hero, linhas tracejadas e pulso. */
+@keyframes ad-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ad-spin-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+@keyframes ad-dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+@keyframes ad-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 0.15;
+  }
+}
+@keyframes ad-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.ad-spin {
+  animation: ad-spin var(--ad-dur, 40s) linear infinite;
+}
+.ad-spin-rev {
+  animation: ad-spin-rev var(--ad-dur, 40s) linear infinite;
+}
+.ad-dash {
+  animation: ad-dash 1.6s linear infinite;
+}
+.ad-pulse {
+  animation: ad-pulse 3.2s ease-in-out infinite;
+}
+.ad-shake {
+  animation: ad-shake 0.45s ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-spin,
+  .ad-spin-rev,
+  .ad-dash,
+  .ad-pulse,
+  .ad-shake {
+    animation: none !important;
+  }
+}
+
+/* Texto de pílula centrado de verdade: a Nunito deixa as minúsculas baixas
+   dentro da linha, então o texto sobe um pouco para ficar no meio do chip. */
+.ad-t {
+  display: inline-block;
+  line-height: 1;
+  transform: translateY(-0.06em);
+}
