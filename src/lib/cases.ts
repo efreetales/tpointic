@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getPreviewCases } from "@/lib/case-previews";
 
 // `grupo`, when set, sorts this item into a named tab in the Resultados
 // section instead of one flat grid — use it only when a case has enough
@@ -103,7 +104,9 @@ export async function getCases(): Promise<Case[]> {
     .order("publicado_em", { ascending: true });
 
   if (error) throw error;
-  return data;
+  // Em deploys de prévia, inclui os cases ainda em revisão (ver case-previews).
+  const drafts = getPreviewCases().filter((d) => !data.some((c) => c.slug === d.slug));
+  return [...data, ...drafts];
 }
 
 export async function getCaseBySlug(slug: string): Promise<Case | null> {
@@ -115,5 +118,5 @@ export async function getCaseBySlug(slug: string): Promise<Case | null> {
     .maybeSingle();
 
   if (error) throw error;
-  return data;
+  return data ?? getPreviewCases().find((d) => d.slug === slug) ?? null;
 }

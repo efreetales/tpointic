@@ -1,0 +1,51 @@
+{
+  "slug": "acesso-delegado-com-consentimento",
+  "titulo": "Acesso delegado com consentimento",
+  "cliente": "Estudo de caso · Proposta",
+  "categorias": [
+    "Fintech",
+    "Estudo de caso"
+  ],
+  "hero_title": "Ajudar com o dinheiro",
+  "hero_accent": "sem tirar o controle.",
+  "resumo": "Estudo de caso conceitual: uma feature de app de banco que permite ao titular dividir o cuidado com o próprio dinheiro entre pessoas de confiança, com papéis e limites diferentes, sem entregar a senha nem perder a autonomia.",
+  "problema_texto": "Quem precisa de ajuda com o dinheiro só tem saídas **tudo ou nada**: entregar a senha, abrir conta conjunta ou fazer uma procuração. Não existe meio-termo seguro.",
+  "steps_eyebrow": "A proposta",
+  "steps_title": "Como funciona",
+  "steps_intro": "O modelo separa três poderes que hoje vêm juntos — operar, acompanhar e aprovar — e só o titular decide quem fica com cada um.",
+  "steps": [
+    {
+      "icon": "users",
+      "title": "O titular define os papéis",
+      "description": "Convida pessoas de confiança pelo app e escolhe o papel de cada uma (operador, supervisor ou validador), os limites e o prazo. Pode revogar qualquer acesso em um toque."
+    },
+    {
+      "icon": "zap",
+      "title": "O cuidador opera o dia a dia",
+      "description": "Faz mercado e farmácia com o próprio login, dentro de um limite e de um bolso separado. A família acompanha cada gasto, sem precisar aprovar a rotina."
+    },
+    {
+      "icon": "shield-check",
+      "title": "O que foge da rotina pede aprovação",
+      "description": "Um Pix acima do limite fica retido até um ou dois validadores aprovarem, com prazo. O banco registra quem fez o quê e monitora padrões fora do normal."
+    }
+  ],
+  "conteudo": "Sobre este estudo\n\nEste é um estudo de caso autoral, sem cliente: uma proposta de design para um problema real do sistema financeiro brasileiro. Os números mostrados vêm de fontes públicas e descrevem o contexto, não resultados do projeto. As personas e hipóteses ainda precisam ser validadas com pesquisa.\n\nPor que agora\n\nO Projeto de Lei 1453/2026, em análise nas comissões da Câmara, propõe que bancos ofereçam de graça uma \"autenticação em dois fatores assistida\": o cliente com 60 anos ou mais indica uma pessoa de confiança que confirma ou recusa operações sensíveis, sem ver saldo nem extrato. O estudo parte da pergunta: como um banco implementaria isso bem?\n\nA lacuna que o PL não cobre\n\nO modelo do PL pressupõe um titular capaz de iniciar e decidir cada operação. Ele não atende quem precisa que outra pessoa opere o dia a dia (um cuidador) enquanto um familiar acompanha e aprova o que é fora da rotina. Esse é o cenário que dá força ao case.\n\nQuatro níveis de autonomia\n\n- Rede de segurança: o titular faz tudo e uma pessoa de confiança valida o que é sensível, como prevê o PL.\n- Ajuda pontual: o titular opera, mas um familiar recebe alertas de risco.\n- Dia a dia delegado: o cuidador opera com limite e bolso separado; o familiar vê o que ele gasta.\n- Sem condição de aprovar: o cuidador opera e dois validadores aprovam o que foge da rotina. Esse nível só nasce de um documento legal, nunca de uma tela.\n\nO que já existe lá fora\n\n- Monzo (Reino Unido): Trusted Access, com acesso informal para o dia a dia ou formal, com base legal.\n- Santander UK: cartão do cuidador, que só acessa o valor que o titular transfere.\n- Bank of Ireland: cartão de cuidador com limite diário e monitoramento de gastos incomuns.\n- Contas PJ no Brasil: operadores e alçadas de aprovação, mas com linguagem e regras de empresa.\n\nNenhuma dessas referências junta operador, supervisor e validador num só modelo, configurável pelo próprio titular no app.\n\nPara quem\n\n- Dona Lúcia, 78, titular: quer continuar decidindo e aceita ajuda se não se sentir vigiada.\n- Marcos, 52, filho e supervisor: mora em outra cidade e quer saber só quando algo foge do normal.\n- Rose, 45, cuidadora e operadora: quer regras claras e um registro que a proteja de desconfianças.\n- Seu Antônio, 84, titular sem condição de aprovar: a conta é operada pela cuidadora e a esposa e a filha aprovam o que é fora da rotina.\n\nHipóteses a validar\n\n- Idosos rejeitam \"pedir autorização\" para usar o próprio dinheiro, mas aceitam \"ter alguém de olho\" contra golpes.\n- Familiares querem alertas de exceção, não aprovar tudo.\n- Cuidadores preferem regras claras e registro a usar a senha do patrão.\n- Dois validadores reduzem o risco de um deles abusar.\n\nRiscos e decisões de design\n\n- Validador que abusa (violência patrimonial): dois validadores no nível mais alto e uma saída discreta para o titular sinalizar pressão ao banco.\n- Urgência sem validador disponível: validador reserva, prazo de resposta e categorias pré-aprovadas, como farmácia e hospital.\n- Golpista se passando pelo validador: aprovação sempre com login e biometria próprios, nunca por SMS ou ligação.\n- Operador e validador nunca são a mesma pessoa: quem gasta não aprova o próprio gasto.\n\nPróximos passos\n\n- Validar com um advogado os pontos sobre procuração, curatela e Tomada de Decisão Apoiada.\n- Entrevistar idosos, familiares e cuidadores.\n- Prototipar os fluxos de convite, aprovação com dois validadores e visão do supervisor.\n\nFontes\n\n- PL 1453/2026: reportagens de NSC Total, O Antagonista e Correio 24 Horas (julho e agosto de 2026).\n- Golpes de Pix por faixa etária: Paraíba Business.\n- Prejuízo com golpes de Pix e boletos: pesquisa Datafolha e Fórum Brasileiro de Segurança Pública, via O Popular.\n- Referências internacionais: páginas oficiais de Monzo, Santander UK e Bank of Ireland.",
+  "destaques": [
+    {
+      "label": "dos golpes no Pix contra pessoas 60+ vêm de impostor pedindo dinheiro",
+      "valor": "48%",
+      "icon": "users"
+    },
+    {
+      "label": "de prejuízo com golpes via Pix e boleto em 12 meses (Datafolha/FBSP)",
+      "valor": "R$ 25,5 bi",
+      "icon": "chart"
+    },
+    {
+      "label": "propõe pessoa de confiança para clientes 60+",
+      "valor": "PL 1453/26",
+      "icon": "shield-check"
+    }
+  ]
+}
