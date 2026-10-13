@@ -95,6 +95,16 @@ export type Case = {
   hero_device: string | null;
 };
 
+// Categoria que marca um case como estudo de caso/proposta autoral (sem
+// cliente nem resultados reais). A página do case usa isso pra mostrar o
+// selo "Estudo de caso · Proposta" no hero e trocar o título da seção de
+// números, que num case real fala de resultados alcançados.
+export const ESTUDO_DE_CASO = "Estudo de caso";
+
+export function isEstudoDeCaso(c: Pick<Case, "categorias">): boolean {
+  return c.categorias.includes(ESTUDO_DE_CASO);
+}
+
 export async function getCases(): Promise<Case[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

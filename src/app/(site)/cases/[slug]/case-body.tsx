@@ -40,7 +40,7 @@ import { Phone3D } from "@/components/phone-3d";
 import { MacbookScreens } from "@/components/macbook-screens";
 import { Bleed } from "@/components/bleed";
 import { VideoIndex } from "@/components/video-index";
-import type { Case, Destaque, PieChartData } from "@/lib/cases";
+import { isEstudoDeCaso, type Case, type Destaque, type PieChartData } from "@/lib/cases";
 import { SITE_NAME } from "@/lib/site";
 
 // Shared icon dictionary — used both by `steps` and `destaques.icon`, keyed
@@ -286,6 +286,8 @@ function projetoHost(url: string) {
 export function CaseBody({ c }: { c: Case }) {
   const screens = c.screens.map((s) => ({ src: s.url, alt: s.alt }));
   const hasStepFlow = c.steps.length > 0;
+  // Estudo de caso/proposta autoral: sem cliente real nem resultados medidos.
+  const estudo = isEstudoDeCaso(c);
   // "A solução" como índice + vídeo: só quando o vídeo é um .mp4 (precisa de
   // controle de tempo) e as etapas trazem `video_at`. Nesse caso o vídeo já
   // aparece ali, então a seção "Vídeo" mais abaixo é omitida.
@@ -364,10 +366,18 @@ export function CaseBody({ c }: { c: Case }) {
             <Link href="/cases" className="text-sm font-bold text-white/70 transition-colors hover:text-white">
               ← Voltar para cases
             </Link>
-            {c.cliente && (
-              <p className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-white/80">
-                {c.cliente} × {SITE_NAME}
-              </p>
+            {estudo ? (
+              <div className={`mt-6 flex ${screens.length > 0 || c.capa_url ? "justify-center lg:justify-start" : "justify-center"}`}>
+                <span className="inline-flex items-center rounded-full border border-white/40 bg-white/10 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
+                  Estudo de caso · Proposta conceitual
+                </span>
+              </div>
+            ) : (
+              c.cliente && (
+                <p className="mt-4 text-sm font-bold uppercase tracking-[0.3em] text-white/80">
+                  {c.cliente} × {SITE_NAME}
+                </p>
+              )
             )}
             <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-black leading-[1.02] text-white sm:text-7xl lg:mx-0">
               {c.hero_title ?? c.titulo}
@@ -978,9 +988,12 @@ export function CaseBody({ c }: { c: Case }) {
           <div className="absolute inset-0 bg-black/50" />
           <div className="relative">
             <Reveal>
-              <SectionEyebrow>Resultados</SectionEyebrow>
+              {/* Num estudo de caso os números são de contexto (fontes
+                  públicas), não resultados do projeto — o título não pode
+                  sugerir impacto medido. */}
+              <SectionEyebrow>{estudo ? "Contexto" : "Resultados"}</SectionEyebrow>
               <h2 className="mx-auto mt-3 max-w-xl text-center text-4xl font-black text-white sm:text-5xl">
-                O que mudou de verdade
+                {estudo ? "O problema em números" : "O que mudou de verdade"}
               </h2>
             </Reveal>
 
@@ -1173,10 +1186,10 @@ export function CaseBody({ c }: { c: Case }) {
         <div className="relative">
           <Reveal>
             <p className="text-sm font-bold uppercase tracking-widest text-white/70">
-              Case · {SITE_NAME}
+              {estudo ? "Estudo de caso" : "Case"} · {SITE_NAME}
             </p>
             <h2 className="mx-auto mt-3 max-w-lg text-4xl font-black text-white sm:text-5xl">
-              Gostou desse case?
+              {estudo ? "Gostou dessa proposta?" : "Gostou desse case?"}
             </h2>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
               <Link

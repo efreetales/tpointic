@@ -213,6 +213,8 @@ const CATEGORY_ORDER = [
   "Liderança",
   "Educação",
   "IA",
+  "Fintech",
+  "Estudo de caso",
 ];
 
 type ViewMode = "orbital" | "lista";
