@@ -36,7 +36,7 @@ export function Comercial() {
           O conceito em uso
         </p>
         <h2 className="mt-3 max-w-3xl text-4xl font-black leading-tight text-white sm:text-5xl">
-          Um dia comum, em 30 segundos.
+          Um dia comum, em menos de 30 segundos.
         </h2>
 
         <motion.div
@@ -48,8 +48,8 @@ export function Comercial() {
         >
           <video
             ref={ref}
-            src={`${BASE}/comercial-v6.mp4`}
-            poster={`${BASE}/comercial-poster-v6.jpg`}
+            src={`${BASE}/comercial-v9.mp4`}
+            poster={`${BASE}/comercial-poster-v9.jpg`}
             preload="metadata"
             playsInline
             onEnded={() => setTocando(false)}
@@ -62,7 +62,7 @@ export function Comercial() {
             <button
               type="button"
               onClick={tocar}
-              aria-label="Assistir ao comercial de 30 segundos"
+              aria-label="Assistir ao comercial de menos de 30 segundos"
               className="group absolute inset-0 flex items-center justify-center bg-black/25 transition-colors hover:bg-black/10"
             >
               <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white text-black transition-transform group-hover:scale-110">
