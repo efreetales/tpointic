@@ -351,3 +351,22 @@ body {
   line-height: 1;
   transform: translateY(-0.06em);
 }
+
+/* Robinho na Selva: tiras de animação (8 quadros de 192px) tocadas com steps(). */
+@keyframes rb-frames {
+  to {
+    background-position: -1536px 0;
+  }
+}
+.rb-sprite {
+  width: 192px;
+  height: 192px;
+  background-repeat: no-repeat;
+  background-size: 1536px 192px;
+  animation: rb-frames var(--rb-dur, 0.8s) steps(8) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rb-sprite {
+    animation: none !important;
+  }
+}
