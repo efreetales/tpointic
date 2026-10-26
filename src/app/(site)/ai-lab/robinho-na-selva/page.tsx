@@ -43,11 +43,11 @@ const STATS = [
 
 // Quadros e velocidade iguais aos do jogo (24 quadros por segundo).
 const ANIMACOES = [
-  { id: "andar", nome: "Andar", n: 22 },
+  { id: "andar", nome: "Andar", n: 22, dano: false },
   { id: "pular", nome: "Pular", n: 16 },
   { id: "fogo", nome: "Soltar fogo", n: 23 },
   { id: "comemorar", nome: "Comemorar", n: 44 },
-  { id: "susto", nome: "Susto", n: 10 },
+  { id: "susto", nome: "Levando dano", n: 10, dano: true },
 ];
 
 const PODERES = [
@@ -232,7 +232,17 @@ const PASSOS = [
   },
 ];
 
-function Sprite({ id, nome, n }: { id: string; nome: string; n: number }) {
+function Sprite({
+  id,
+  nome,
+  n,
+  dano = false,
+}: {
+  id: string;
+  nome: string;
+  n: number;
+  dano?: boolean;
+}) {
   return (
     <div className="group rounded-3xl border border-border bg-surface p-4 text-center transition-transform duration-300 hover:-translate-y-2">
       <div
@@ -240,7 +250,7 @@ function Sprite({ id, nome, n }: { id: string; nome: string; n: number }) {
         style={{ backgroundColor: `${GREEN}22`, width: 160 }}
       >
         <div
-          className="rb-sprite"
+          className={dano ? "rb-sprite rb-dano" : "rb-sprite"}
           role="img"
           aria-label={`Robinho animado: ${nome}`}
           style={
@@ -477,7 +487,7 @@ export default function RobinhoNaSelvaPage() {
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {ANIMACOES.map((a, i) => (
             <Reveal key={a.id} delay={i * 0.08}>
-              <Sprite id={a.id} nome={a.nome} n={a.n} />
+              <Sprite id={a.id} nome={a.nome} n={a.n} dano={a.dano} />
             </Reveal>
           ))}
         </div>

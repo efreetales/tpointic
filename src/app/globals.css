@@ -371,6 +371,21 @@ body {
   background-size: calc(var(--rb-n) * 160px) 160px;
   animation: rb-frames var(--rb-dur, 1s) steps(var(--rb-n)) infinite;
 }
+/* Dano: o jogo pisca o Robinho em branco (brilho 3x, voltando ao normal em 0,25 s). */
+@keyframes rb-flash {
+  0% {
+    filter: brightness(3);
+  }
+  60%,
+  100% {
+    filter: brightness(1);
+  }
+}
+.rb-sprite.rb-dano {
+  animation:
+    rb-frames var(--rb-dur, 1s) steps(var(--rb-n)) infinite,
+    rb-flash var(--rb-dur, 1s) linear infinite;
+}
 @media (prefers-reduced-motion: reduce) {
   .rb-sprite {
     animation: none !important;
