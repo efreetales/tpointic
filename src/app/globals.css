@@ -102,7 +102,8 @@ body {
 }
 
 @keyframes heart-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
   }
   50% {
@@ -133,11 +134,14 @@ body {
 }
 
 @keyframes logo-glow-pulse {
-  0%, 100% {
-    filter: drop-shadow(0 0 18px rgba(102, 252, 241, 0.55)) drop-shadow(0 0 4px rgba(102, 252, 241, 0.8));
+  0%,
+  100% {
+    filter: drop-shadow(0 0 18px rgba(102, 252, 241, 0.55))
+      drop-shadow(0 0 4px rgba(102, 252, 241, 0.8));
   }
   50% {
-    filter: drop-shadow(0 0 34px rgba(102, 252, 241, 0.85)) drop-shadow(0 0 8px rgba(102, 252, 241, 1));
+    filter: drop-shadow(0 0 34px rgba(102, 252, 241, 0.85))
+      drop-shadow(0 0 8px rgba(102, 252, 241, 1));
   }
 }
 
@@ -206,7 +210,8 @@ body {
 }
 
 .card-float {
-  animation: card-float var(--float-dur, 7s) ease-in-out var(--float-delay, 0s) infinite;
+  animation: card-float var(--float-dur, 7s) ease-in-out var(--float-delay, 0s)
+    infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -263,7 +268,8 @@ body {
   animation: lab-twinkle 2.2s ease-in-out infinite;
 }
 .lab-float {
-  animation: lab-float var(--lab-dur, 6s) ease-in-out var(--lab-delay, 0s) infinite;
+  animation: lab-float var(--lab-dur, 6s) ease-in-out var(--lab-delay, 0s)
+    infinite;
 }
 .lab-marquee-track {
   animation: lab-marquee 32s linear infinite;
@@ -350,4 +356,23 @@ body {
   display: inline-block;
   line-height: 1;
   transform: translateY(-0.06em);
+}
+
+/* Robinho na Selva: tiras de animação (quadros de 160px, 24 por segundo) tocadas com steps(). */
+@keyframes rb-frames {
+  to {
+    background-position: calc(var(--rb-n) * -160px) 0;
+  }
+}
+.rb-sprite {
+  width: 160px;
+  height: 160px;
+  background-repeat: no-repeat;
+  background-size: calc(var(--rb-n) * 160px) 160px;
+  animation: rb-frames var(--rb-dur, 1s) steps(var(--rb-n)) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rb-sprite {
+    animation: none !important;
+  }
 }
