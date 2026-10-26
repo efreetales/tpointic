@@ -65,6 +65,18 @@ export const LAB_PROJECTS: LabProject[] = [
     cover: labAsset("iniaflow/dashboard.webp"),
     tools: ["v0", "Next.js", "Vercel"],
   },
+  {
+    slug: "robinho-na-selva",
+    titulo: "Robinho na Selva",
+    tagline: "Um náufrago, um chapéu que solta fogo e um arquipélago para reacender.",
+    tipo: "Jogo de plataforma · projeto pessoal",
+    categoria: "jogos",
+    accent: "#F5A742",
+    url: "https://robinho-na-selva.vercel.app",
+    href: "/ai-lab/robinho-na-selva",
+    cover: "/ai-lab/robinho/cover.webp",
+    tools: ["Godot 4.7", "Claude Code", "Codex", "Recraft"],
+  },
 ];
 
 export type LabSkill = {
