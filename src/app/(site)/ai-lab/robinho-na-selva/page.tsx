@@ -37,14 +37,17 @@ const GREEN = "#7cc576";
 const STATS = [
   { value: "5", label: "segmentos por ilha" },
   { value: "15 mil", label: "pixels de ilha nova a cada partida" },
-  { value: "11", label: "animações do Robinho" },
+  { value: "12", label: "animações do Robinho" },
   { value: "100%", label: "das fases verificadas como passáveis" },
 ];
 
+// Quadros e velocidade iguais aos do jogo (24 quadros por segundo).
 const ANIMACOES = [
-  { id: "caminhada", nome: "Andar", dur: "0.8s" },
-  { id: "salto", nome: "Pular", dur: "0.9s" },
-  { id: "disparo", nome: "Soltar fogo", dur: "0.7s" },
+  { id: "andar", nome: "Andar", n: 22 },
+  { id: "pular", nome: "Pular", n: 16 },
+  { id: "fogo", nome: "Soltar fogo", n: 23 },
+  { id: "comemorar", nome: "Comemorar", n: 44 },
+  { id: "susto", nome: "Susto", n: 10 },
 ];
 
 const PODERES = [
@@ -229,12 +232,12 @@ const PASSOS = [
   },
 ];
 
-function Sprite({ id, nome, dur }: { id: string; nome: string; dur: string }) {
+function Sprite({ id, nome, n }: { id: string; nome: string; n: number }) {
   return (
     <div className="group rounded-3xl border border-border bg-surface p-4 text-center transition-transform duration-300 hover:-translate-y-2">
       <div
         className="mx-auto rounded-2xl"
-        style={{ backgroundColor: `${GREEN}22`, width: 192 }}
+        style={{ backgroundColor: `${GREEN}22`, width: 160 }}
       >
         <div
           className="rb-sprite"
@@ -242,8 +245,9 @@ function Sprite({ id, nome, dur }: { id: string; nome: string; dur: string }) {
           aria-label={`Robinho animado: ${nome}`}
           style={
             {
-              backgroundImage: `url(${labAsset(`robinho/anim-${id}.webp`)})`,
-              "--rb-dur": dur,
+              backgroundImage: `url(${labAsset(`robinho/reel-${id}.webp`)})`,
+              "--rb-n": n,
+              "--rb-dur": `${(n / 24).toFixed(2)}s`,
             } as React.CSSProperties
           }
         />
@@ -465,15 +469,15 @@ export default function RobinhoNaSelvaPage() {
             Os quadros do Robinho, em movimento
           </h2>
           <p className="mt-3 max-w-xl text-slate">
-            Além destas, ele também sobe, cai, pousa, carrega o disparo, leva
-            dano, comemora, senta e dorme. Quando fica parado, não demora a
-            cochilar.
+            Os mesmos quadros e a mesma velocidade do jogo. Além destes, ele
+            ainda carrega o disparo, tomba, senta e dorme: quando fica parado,
+            não demora a cochilar.
           </p>
         </Reveal>
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {ANIMACOES.map((a, i) => (
-            <Reveal key={a.id} delay={i * 0.1}>
-              <Sprite id={a.id} nome={a.nome} dur={a.dur} />
+            <Reveal key={a.id} delay={i * 0.08}>
+              <Sprite id={a.id} nome={a.nome} n={a.n} />
             </Reveal>
           ))}
         </div>
@@ -532,8 +536,8 @@ export default function RobinhoNaSelvaPage() {
                           style={
                             p.estado === "No jogo"
                               ? {
-                                  backgroundColor: `${GREEN}40`,
-                                  color: "#2f6b2a",
+                                  backgroundColor: GREEN,
+                                  color: "#0b1f0a",
                                 }
                               : { backgroundColor: "#e5e7eb", color: "#4b5563" }
                           }
