@@ -163,6 +163,8 @@ const FALTA = [
   "A travessia de barco entre as ilhas",
 ];
 
+const FERRAMENTAS = ["Godot 4.7", "Claude Code", "Codex", "Recraft"];
+
 const CONTROLES = [
   { acao: "Andar", teclas: ["A", "D", "←", "→"] },
   { acao: "Pular (segure para ir mais alto)", teclas: ["Espaço", "W", "↑"] },
@@ -360,6 +362,45 @@ export default function RobinhoNaSelvaPage() {
               <p className="mt-1 text-sm text-slate">{s.label}</p>
             </Reveal>
           ))}
+        </div>
+      </section>
+
+      {/* Ficha técnica */}
+      <section className="border-b border-border">
+        <div className="mx-auto grid max-w-5xl gap-4 px-6 py-10 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              label: "Gênero",
+              valor: "Plataforma 2D de ação, com progressão leve",
+            },
+            {
+              label: "Plataforma",
+              valor: "Navegador (versão web), feito em Godot 4.7",
+            },
+            { label: "Controles", valor: "Teclado ou controle" },
+          ].map((item, i) => (
+            <Reveal key={item.label} delay={i * 0.06}>
+              <div className="h-full rounded-2xl border border-border bg-surface p-5">
+                <p className="text-sm text-gray">{item.label}</p>
+                <p className="mt-1 font-bold text-navy">{item.valor}</p>
+              </div>
+            </Reveal>
+          ))}
+          <Reveal delay={0.18}>
+            <div className="h-full rounded-2xl border border-border bg-surface p-5">
+              <p className="text-sm text-gray">Ferramentas</p>
+              <p className="mt-2 flex flex-wrap gap-1.5">
+                {FERRAMENTAS.map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-full border border-border px-2.5 py-1 text-xs font-bold text-navy"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </p>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -609,16 +650,6 @@ export default function RobinhoNaSelvaPage() {
             <h2 className="mt-2 text-3xl font-black text-navy sm:text-4xl">
               Da ideia ao navegador, passo a passo
             </h2>
-            <p className="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray">
-              {["Godot 4.7", "Claude Code", "Codex", "Recraft"].map((t) => (
-                <span
-                  key={t}
-                  className="rounded-full border border-border px-2.5 py-1"
-                >
-                  {t}
-                </span>
-              ))}
-            </p>
           </Reveal>
 
           <ol className="relative mt-12 space-y-10 border-l border-border pl-8 sm:pl-12">
