@@ -72,7 +72,7 @@ export const LAB_PROJECTS: LabProject[] = [
     tipo: "Jogo de plataforma · projeto pessoal",
     categoria: "jogos",
     accent: "#F5A742",
-    url: "https://robinho-na-selva.vercel.app",
+    url: "/jogo-robinho/index.html",
     href: "/ai-lab/robinho-na-selva",
     cover: "/ai-lab/robinho/cover.webp",
     tools: ["Godot 4.7", "Claude Code", "Codex", "Recraft"],

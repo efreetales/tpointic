@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     "Projeto pessoal: um jogo de plataforma em que um náufrago com chapéu de fogo atravessa um arquipélago de ilhas.",
 };
 
-const GAME_URL = "https://robinho-na-selva.vercel.app";
+const GAME_URL = "/jogo-robinho/index.html";
 
 const FICHA = [
   { label: "Gênero", valor: "Plataforma 2D com progressão" },
@@ -54,8 +54,6 @@ export default function RobinhoNaSelvaPage() {
       <div className="mt-8">
         <a
           href={GAME_URL}
-          target="_blank"
-          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 rounded-full px-6 py-3 font-medium text-black"
           style={{ backgroundColor: "#F5A742" }}
         >
