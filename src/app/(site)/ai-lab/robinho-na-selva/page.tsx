@@ -43,11 +43,10 @@ const STATS = [
 
 // Quadros e velocidade iguais aos do jogo (24 quadros por segundo).
 const ANIMACOES = [
-  { id: "andar", nome: "Andar", n: 22, dano: false },
+  { id: "andar", nome: "Andar", n: 22 },
   { id: "pular", nome: "Pular", n: 16 },
   { id: "fogo", nome: "Soltar fogo", n: 23 },
   { id: "comemorar", nome: "Comemorar", n: 44 },
-  { id: "susto", nome: "Levando dano", n: 10, dano: true },
 ];
 
 const PODERES = [
@@ -232,53 +231,25 @@ const PASSOS = [
   },
 ];
 
-function Sprite({
-  id,
-  nome,
-  n,
-  dano = false,
-}: {
-  id: string;
-  nome: string;
-  n: number;
-  dano?: boolean;
-}) {
+function Sprite({ id, nome, n }: { id: string; nome: string; n: number }) {
   return (
     <div className="group rounded-3xl border border-border bg-surface p-2 pb-4 text-center transition-transform duration-300 hover:-translate-y-2">
       <div
         className="mx-auto rounded-2xl"
         style={{ backgroundColor: `${GREEN}22`, width: 160 }}
       >
-        {dano ? (
-          <div className="rb-dano-move">
-            <div className="rb-dano-blink">
-              <div
-                className="rb-sprite rb-dano"
-                role="img"
-                aria-label={`Robinho animado: ${nome}`}
-                style={
-                  {
-                    backgroundImage: `url(${labAsset(`robinho/reel-${id}.webp`)})`,
-                    "--rb-n": n,
-                  } as React.CSSProperties
-                }
-              />
-            </div>
-          </div>
-        ) : (
-          <div
-            className="rb-sprite"
-            role="img"
-            aria-label={`Robinho animado: ${nome}`}
-            style={
-              {
-                backgroundImage: `url(${labAsset(`robinho/reel-${id}.webp`)})`,
-                "--rb-n": n,
-                "--rb-dur": `${(n / 24).toFixed(2)}s`,
-              } as React.CSSProperties
-            }
-          />
-        )}
+        <div
+          className="rb-sprite"
+          role="img"
+          aria-label={`Robinho animado: ${nome}`}
+          style={
+            {
+              backgroundImage: `url(${labAsset(`robinho/reel-${id}.webp`)})`,
+              "--rb-n": n,
+              "--rb-dur": `${(n / 24).toFixed(2)}s`,
+            } as React.CSSProperties
+          }
+        />
       </div>
       <p className="mt-3 text-lg font-black text-navy">{nome}</p>
     </div>
@@ -502,17 +473,13 @@ export default function RobinhoNaSelvaPage() {
             não demora a cochilar.
           </p>
         </Reveal>
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {ANIMACOES.map((a, i) => (
             <Reveal key={a.id} delay={i * 0.08}>
-              <Sprite id={a.id} nome={a.nome} n={a.n} dano={a.dano} />
+              <Sprite id={a.id} nome={a.nome} n={a.n} />
             </Reveal>
           ))}
         </div>
-        <p className="mt-4 text-xs text-gray">
-          Levando dano, como no jogo: brilho branco, tranco para trás e 1,5
-          segundo piscando.
-        </p>
       </section>
 
       {/* Poderes */}
